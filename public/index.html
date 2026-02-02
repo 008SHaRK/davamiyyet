@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Davamiyyət</title>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2e;
+      --card2:#0f172a;
+      --txt:#e5e7eb;
+      --muted:#9ca3af;
+      --line:rgba(255,255,255,.10);
+      --brand:#22c55e;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --btn:#2563eb;
+      --btn2:#334155;
+      --shadow: 0 12px 34px rgba(0,0,0,.35);
+      --r:16px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(37,99,235,.35), transparent 60%),
+        radial-gradient(1000px 500px at 90% 10%, rgba(34,197,94,.25), transparent 60%),
+        var(--bg);
+      color:var(--txt);
+      padding:16px;
+    }
+
+    .wrap{
+      max-width:560px;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:14px 14px;
+      border:1px solid var(--line);
+      background:rgba(17,26,46,.65);
+      border-radius:var(--r);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .brand b{font-size:18px; letter-spacing:.2px}
+    .brand span{font-size:12px; color:var(--muted)}
+
+    .pill{
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(0,0,0,.20);
+      font-size:12px;
+      color:var(--txt);
+      white-space:nowrap;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      background:rgba(17,26,46,.65);
+      border-radius:var(--r);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      overflow:hidden;
+    }
+    .card .p{ padding:14px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      font-weight:700;
+      margin:0 0 6px;
+      color:var(--txt);
+    }
+
+    input, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(15,23,42,.65);
+      color:var(--txt);
+      font-size:16px;
+      outline:none;
+    }
+    select{
+  width: 100%;
+  max-width: 100%;
+  display: block;
+  box-sizing: border-box;
+
+  padding: 12px 40px 12px 12px; /* sağda ox üçün yer */
+  font-size: 16px; /* iPhone zoom olmasın */
+  line-height: 1.2;
+
+  border: 1px solid #ccc;
+  border-radius: 12px;
+
+  background:rgba(15,23,42,.65);
+      color:var(--txt);
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+}
+
+    input::placeholder{color:rgba(229,231,235,.55)}
+    input:focus, select:focus{
+      border-color: rgba(37,99,235,.65);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.15);
+    }
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+      line-height:1.35;
+    }
+
+    .camBox{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    video, img{
+      width:100%;
+      border-radius:14px;
+      background:#000;
+      border:1px solid var(--line);
+    }
+    video{ aspect-ratio: 3/4; object-fit:cover; }
+    img{ display:none; }
+
+    .btnRow{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    button{
+      border:none;
+      border-radius:14px;
+      padding:13px 12px;
+      font-size:16px;
+      font-weight:800;
+      cursor:pointer;
+      color:white;
+      transition: transform .08s ease, opacity .2s ease, filter .2s ease;
+      user-select:none;
+    }
+    button:active{ transform: scale(.99); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .btnPrimary{ background: var(--btn); }
+    .btnDark{ background: var(--btn2); }
+    .btnGreen{ background: #16a34a; }
+    .btnWide{
+      width:100%;
+      background: #0ea5e9;
+    }
+
+    .msg{
+      display:none;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      line-height:1.35;
+      font-size:14px;
+    }
+    .msg.ok{
+      display:block;
+      background: rgba(34,197,94,.12);
+      border-color: rgba(34,197,94,.35);
+      color: #d1fae5;
+    }
+    .msg.bad{
+      display:block;
+      background: rgba(239,68,68,.12);
+      border-color: rgba(239,68,68,.35);
+      color: #fee2e2;
+    }
+    .msg.warn{
+      display:block;
+      background: rgba(245,158,11,.12);
+      border-color: rgba(245,158,11,.35);
+      color: #ffedd5;
+    }
+
+    .statusLine{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .chip{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--txt);
+    }
+
+    @media (min-width:560px){
+      video{ aspect-ratio: 4/3; }
+      .grid{ grid-template-columns:1fr 1fr; }
+      .grid .full{ grid-column:1/-1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="topbar">
+      <div class="brand">
+        <b>Davamiyyət</b>
+        <span>QR linkindən məkan avtomatik gəlir</span>
+      </div>
+      <div class="pill">📍 Məkan: <b id="mekanTxt">-</b></div>
+    </div>
+
+    <div class="card">
+      <div class="p">
+        <div class="grid">
+          <div>
+            <label>Ad</label>
+            <input id="ad" placeholder="Nazim" autocomplete="given-name" />
+          </div>
+
+          <div>
+            <label>Soyad</label>
+            <input id="soyad" placeholder="Ibrahimov" autocomplete="family-name" />
+          </div>
+
+          <div class="full">
+            <label>Vəzifə</label>
+            <select id="vezife">
+              <option value="">Vəzifə seç</option>
+              <option value="kassır">kassır</option>
+              <option value="satıcı">satıcı</option>
+              <option value="menecer">menecer</option>
+            </select>
+            <div class="hint">Qeyd: Ad/Soyad/Vəzifə bazada necədirsə elə yaz.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="camBox">
+        <video id="video" autoplay playsinline></video>
+        <img id="shot" alt="Çəkilən şəkil"/>
+
+        <div class="btnRow">
+          <button id="btnKamera" class="btnDark" type="button">📷 Kameranı aç</button>
+          <button id="btnCek" class="btnPrimary" type="button" disabled>🟦 Şəkil çək</button>
+        </div>
+
+        <button id="btnGonder" class="btnWide" type="button" disabled>✅ Göndər</button>
+
+        <div class="statusLine">
+          <span class="chip" id="chipModel">Model: yüklənir…</span>
+          <span class="chip" id="chipFace">Üz: -</span>
+        </div>
+
+        <div id="mesaj" class="msg"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- face-api -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <script>
+    const video = document.getElementById("video");
+    const shot = document.getElementById("shot");
+    const btnKamera = document.getElementById("btnKamera");
+    const btnCek = document.getElementById("btnCek");
+    const btnGonder = document.getElementById("btnGonder");
+    const mesaj = document.getElementById("mesaj");
+
+    const chipModel = document.getElementById("chipModel");
+    const chipFace = document.getElementById("chipFace");
+
+    // URL-dən məkan götürürük: /q/corndog
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const mekan = (pathParts[0] === "q" && pathParts[1]) ? decodeURIComponent(pathParts[1]) : "unknown";
+    document.getElementById("mekanTxt").innerText = mekan;
+
+    let stream = null;
+    let blobFile = null;         // şəkil (blob)
+    let lastDescriptor = null;   // descriptor (128)
+    let modelsReady = false;
+
+    function showMsg(text, type="ok"){
+      mesaj.className = "msg " + type;
+      mesaj.textContent = text;
+    }
+
+    // ------------------------
+    // Face-api modellərini yüklə
+    // ------------------------
+    async function loadModels(){
+      chipModel.textContent = "Model: yüklənir…";
+      await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+      await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
+      await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+      modelsReady = true;
+      chipModel.textContent = "Model: hazır ✅";
+    }
+
+    async function getDescriptorFromImg(imgEl){
+      const det = await faceapi
+        .detectSingleFace(imgEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!det) return null;
+      return Array.from(det.descriptor);
+    }
+
+    function waitImgLoad(imgEl){
+      return new Promise((resolve, reject) => {
+        if (imgEl.complete && imgEl.naturalWidth > 0) return resolve();
+        imgEl.onload = () => resolve();
+        imgEl.onerror = (e) => reject(e);
+      });
+    }
+
+    window.addEventListener("load", () => {
+      loadModels().then(() => {
+        showMsg("Modellər yükləndi ✅", "ok");
+      }).catch(err => {
+        console.error("Model xətası:", err);
+        chipModel.textContent = "Model: xəta ❌";
+        showMsg("Model yükləmə xətası oldu (F12 Console-a bax)", "bad");
+      });
+    });
+
+    // ------------------------
+    // Kamera aç
+    // ------------------------
+    btnKamera.addEventListener("click", async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
+        video.srcObject = stream;
+        btnCek.disabled = false;
+        showMsg("Kamera açıldı ✅", "ok");
+      } catch (e) {
+        showMsg("Kamera açıla bilmədi: " + e.message, "bad");
+      }
+    });
+
+    // ------------------------
+    // Şəkil çək
+    // ------------------------
+    btnCek.addEventListener("click", async () => {
+      if (!stream) return;
+
+      if (!modelsReady) {
+        showMsg("Modellər hələ yüklənir... 2 saniyə gözlə.", "warn");
+        return;
+      }
+
+      // UI reset
+      chipFace.textContent = "Üz: yoxlanır…";
+      btnGonder.disabled = true;
+      lastDescriptor = null;
+
+      const canvas = document.createElement("canvas");
+      const w = video.videoWidth || 640;
+      const h = video.videoHeight || 480;
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, w, h);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.88));
+      if (!blob) {
+        showMsg("Şəkil alınmadı ❌ Yenidən çək.", "bad");
+        chipFace.textContent = "Üz: -";
+        return;
+      }
+
+      blobFile = blob;
+
+      shot.src = URL.createObjectURL(blob);
+      shot.style.display = "block";
+
+      showMsg("Şəkil çəkildi ✅ Üz axtarılır...", "ok");
+
+      try {
+        await waitImgLoad(shot);
+        const desc = await getDescriptorFromImg(shot);
+
+        if (!desc) {
+          chipFace.textContent = "Üz: tapılmadı ❌";
+          showMsg("Üz tapılmadı ❌ Üz tam görünsün, yenidən çək.", "bad");
+          return;
+        }
+
+        lastDescriptor = desc;
+        chipFace.textContent = "Üz: tapıldı ✅";
+        btnGonder.disabled = false;
+        showMsg("Üz tapıldı ✅ İndi göndərə bilərsən.", "ok");
+
+      } catch (err) {
+        console.error(err);
+        chipFace.textContent = "Üz: xəta ❌";
+        showMsg("Üz yoxlama xətası: " + err.message, "bad");
+      }
+    });
+
+    // ------------------------
+    // Göndər
+    // ------------------------
+    btnGonder.addEventListener("click", async () => {
+      const ad = document.getElementById("ad").value.trim();
+      const soyad = document.getElementById("soyad").value.trim();
+      const vezife = document.getElementById("vezife").value.trim();
+
+      if (!ad || !soyad || !vezife) {
+        showMsg("Ad/Soyad/Vəzifə boş ola bilməz.", "bad");
+        return;
+      }
+      if (!blobFile) {
+        showMsg("Əvvəl şəkil çək.", "bad");
+        return;
+      }
+      if (!lastDescriptor) {
+        showMsg("Üz tapılmadı. Yenidən şəkil çək.", "bad");
+        return;
+      }
+
+      btnGonder.disabled = true;
+      showMsg("Göndərilir... ⏳", "warn");
+
+      const fd = new FormData();
+      fd.append("ad", ad);
+      fd.append("soyad", soyad);
+      fd.append("vezife", vezife);
+      fd.append("mekan", mekan);
+      fd.append("sekil", blobFile, "selfie.jpg");
+      fd.append("descriptor", JSON.stringify(lastDescriptor));
+
+      try {
+        const r = await fetch("/api/qeydiyyat", { method: "POST", body: fd });
+        const data = await r.json();
+
+        if (!r.ok) {
+          showMsg(data.error || "Xəta oldu", "bad");
+          btnGonder.disabled = false;
+          return;
+        }
+
+        // status görə mesaj rəngi
+        if (data.status === "OK") {
+          showMsg(`Uğurlu ✅ | Hadisə: ${data.hadise}`, "ok");
+        } else if (data.status === "LIMIT") {
+          showMsg(`Limit doldu ⚠️ | Hadisə: ${data.hadise}`, "warn");
+        } else {
+          showMsg(`Rədd edildi ❌ | ${data.qeyd || ""}`, "bad");
+        }
+
+      } catch (e) {
+        showMsg("Göndərmə xətası: " + e.message, "bad");
+      } finally {
+        btnGonder.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -11,7 +11,10 @@ const pool = require("./db");
 
 const app = express();
 app.use(cors());
+
+// ✅ 2 dəfə yazmağa ehtiyac yoxdur, amma sənin dediyin kimi saxlayıram
 app.use(express.json({ limit: "10mb" }));
+app.use(express.json());
 
 // Static
 app.use("/uploads", express.static("uploads"));
@@ -33,38 +36,14 @@ function euclideanDistance(a, b) {
 const FACE_THRESHOLD = Number(process.env.FACE_THRESHOLD || 0.55);
 
 // ----------------------
-// Telegram helper
+// ✅ ƏLAVƏ: telefon normallaşdırma
 // ----------------------
-async function sendTelegramMessage(text, imageUrl = null) {
-  try {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
-
-    if (!token || !chatId) {
-      console.log("Telegram token və ya chat id yoxdur (.env yoxla)");
-      return;
-    }
-
-    // ✅ ƏLAVƏ: Debug üçün
-    // console.log("TELEGRAM SEND -> chatId:", chatId, "image?", !!imageUrl);
-
-    if (imageUrl) {
-      await axios.post(`https://api.telegram.org/bot${token}/sendPhoto`, {
-        chat_id: chatId,
-        photo: imageUrl,
-        caption: text,
-      });
-    } else {
-      await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
-        chat_id: chatId,
-        text,
-      });
-    }
-  } catch (err) {
-    // Telegram error bəzən response ilə gəlir
-    const more = err.response?.data ? JSON.stringify(err.response.data) : err.message;
-    console.log("Telegram xətası:", more);
-  }
+function normPhone(p) {
+  if (!p) return null;
+  let x = String(p).replace(/[^\d+]/g, "");
+  if (x.startsWith("00")) x = "+" + x.slice(2);
+  if (!x.startsWith("+")) x = "+" + x;
+  return x;
 }
 
 // ----------------------
@@ -89,6 +68,265 @@ function requireAdmin(req, res, next) {
   res.setHeader("WWW-Authenticate", 'Basic realm="Admin Panel"');
   return res.status(401).send("Yanlis login/parol");
 }
+
+// ----------------------
+// Telegram helper  ✅ DƏYİŞDİ: artıq seçilmiş nömrələr (abonələr)
+// ----------------------
+async function sendTelegramMessage(text, imageUrl = null) {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+
+    if (!token) {
+      console.log("Telegram token yoxdur (.env yoxla)");
+      return;
+    }
+
+    // ✅ Yalnız aktiv abonələrə göndər
+    const [subs] = await pool.query(`SELECT chat_id FROM telegram_abuneler WHERE aktiv=1`);
+
+    if (!subs.length) {
+      console.log("Aktiv telegram abonə yoxdur. /start edib nömrəni göndərməlidirlər.");
+      return;
+    }
+
+    for (const s of subs) {
+      const chatId = s.chat_id;
+
+      try {
+        if (imageUrl) {
+          await axios.post(`https://api.telegram.org/bot${token}/sendPhoto`, {
+            chat_id: chatId,
+            photo: imageUrl,
+            caption: text,
+          });
+        } else {
+          await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+            chat_id: chatId,
+            text,
+          });
+        }
+      } catch (err2) {
+        const more = err2.response?.data ? JSON.stringify(err2.response.data) : err2.message;
+        console.log("Telegram göndərmə xətası:", chatId, more);
+      }
+    }
+  } catch (err) {
+    const more = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    console.log("Telegram xətası:", more);
+  }
+}
+
+// ----------------------
+// ✅ ƏLAVƏ: Telegram webhook (seçilmiş nömrələr / icazə)
+// ----------------------
+app.post("/telegram/webhook", async (req, res) => {
+  try {
+    const update = req.body;
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) return res.json({ ok: true });
+
+    const msg = update.message;
+    if (!msg) return res.json({ ok: true });
+
+    const chatId = msg.chat?.id;
+    const text = (msg.text || "").trim();
+
+    if (!chatId) return res.json({ ok: true });
+
+    // /start -> contact istə
+    if (text === "/start") {
+      await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+        chat_id: chatId,
+        text:
+          "📌 Davamiyyət bildirişləri üçün nömrəni təsdiqlə.\n\n" +
+          "Aşağıdakı düymədən 'Nömrəni göndər' seç.",
+        reply_markup: {
+          keyboard: [[{ text: "📲 Nömrəni göndər", request_contact: true }]],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
+      });
+      return res.json({ ok: true });
+    }
+
+    // Contact gəlibsə -> icazə yoxla
+    if (msg.contact && msg.contact.phone_number) {
+      const phoneFixed = normPhone(msg.contact.phone_number);
+
+      if (!phoneFixed) {
+        await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+          chat_id: chatId,
+          text: "❌ Nömrə oxunmadı. Yenidən göndər.",
+        });
+        return res.json({ ok: true });
+      }
+
+      // icazəli siyahıda varmı?
+      const [allow] = await pool.query(
+        `SELECT id FROM telegram_icazeli WHERE telefon=? LIMIT 1`,
+        [phoneFixed]
+      );
+
+      if (!allow.length) {
+        await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+          chat_id: chatId,
+          text: "⛔ Bu nömrə icazəli siyahıda deyil. Admin ilə əlaqə saxla.",
+        });
+
+        await pool.query(
+          `INSERT INTO telegram_abuneler (chat_id, telefon, aktiv)
+           VALUES (?,?,0)
+           ON DUPLICATE KEY UPDATE telefon=VALUES(telefon), aktiv=0`,
+          [chatId, phoneFixed]
+        );
+
+        return res.json({ ok: true });
+      }
+
+      // icazəlidirsə aktiv et
+      await pool.query(
+        `INSERT INTO telegram_abuneler (chat_id, telefon, aktiv)
+         VALUES (?,?,1)
+         ON DUPLICATE KEY UPDATE telefon=VALUES(telefon), aktiv=1`,
+        [chatId, phoneFixed]
+      );
+
+      await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+        chat_id: chatId,
+        text: "✅ Təsdiqləndin. Artıq bildirişlər sənə də gələcək.",
+        reply_markup: { remove_keyboard: true },
+      });
+
+      return res.json({ ok: true });
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.log("Webhook xətası:", err.message);
+    return res.json({ ok: true });
+  }
+});
+
+// ----------------------
+// ✅ Telegram Admin APIs (icazeli telefonlar)
+// ----------------------
+
+// icazeli siyahi
+app.get("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT id, telefon, yaradildi
+      FROM telegram_icazeli
+      ORDER BY id DESC
+      LIMIT 500
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// icazeli elave et
+app.post("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
+  try {
+    let { telefon } = req.body || {};
+    telefon = normPhone(telefon);
+
+    if (!telefon) return res.status(400).json({ error: "telefon bos ola bilmez" });
+
+    // təkrar varsa
+    const [ex] = await pool.query(
+      `SELECT id FROM telegram_icazeli WHERE telefon=? LIMIT 1`,
+      [telefon]
+    );
+    if (ex.length) return res.status(409).json({ error: "bu nomre artiq icazelidir" });
+
+    const [ins] = await pool.query(
+      `INSERT INTO telegram_icazeli (telefon) VALUES (?)`,
+      [telefon]
+    );
+
+    res.json({ ok: true, id: ins.insertId, telefon });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// icazeli sil
+app.delete("/api/admin/telegram/icazeli/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "id yanlisdir" });
+
+    await pool.query(`DELETE FROM telegram_icazeli WHERE id=?`, [id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------------
+// ✅ MAAŞ QAYDALARI (mekan + vezife -> gunluk_maas)
+// ----------------------
+
+// 1) Qaydaları gətir
+app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT id, mekan, vezife, gunluk_maas, aktiv, yaradildi
+      FROM maas_qaydalar
+      WHERE aktiv=1
+      ORDER BY mekan, vezife
+    `);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 2) Qayda əlavə et / yenilə (eyni mekan+vezife varsa update edir)
+app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
+  try {
+    let { mekan, vezife, gunluk_maas } = req.body || {};
+
+    mekan = String(mekan || "").trim();
+    vezife = String(vezife || "").trim();
+    const g = Number(gunluk_maas);
+
+    if (!mekan || !vezife) return res.status(400).json({ error: "mekan ve vezife bos ola bilmez" });
+    if (!Number.isFinite(g) || g < 0) return res.status(400).json({ error: "gunluk_maas duzgun deyil" });
+
+    // normalize (case-insensitive olsun)
+    const m = mekan.toLowerCase();
+    const v = vezife.toLowerCase();
+
+    await pool.query(
+      `
+      INSERT INTO maas_qaydalar (mekan, vezife, gunluk_maas, aktiv)
+      VALUES (?,?,?,1)
+      ON DUPLICATE KEY UPDATE gunluk_maas=VALUES(gunluk_maas), aktiv=1
+      `,
+      [m, v, g]
+    );
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 3) Qaydanı sil (deaktiv)
+app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "id yanlisdir" });
+
+    await pool.query(`UPDATE maas_qaydalar SET aktiv=0 WHERE id=?`, [id]);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ----------------------
 // Multer (log şəkil upload)
@@ -132,6 +370,14 @@ app.get("/admin", requireAdmin, (req, res) => {
 
 app.get("/admin/isciler", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "private", "isciler.html"));
+});
+
+app.get("/admin/telegram", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "telegram.html"));
+});
+
+app.get("/admin/maas", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "maas.html"));
 });
 
 // ----------------------
@@ -262,7 +508,7 @@ app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), as
   }
 });
 
-// Maaş Excel
+// Maaş Excel (✅ indi vezife+mekan qaydası ilə)
 app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
   try {
     const month = (req.query.month || "").trim();
@@ -295,7 +541,37 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
     );
 
     const gelenMap = new Map(gelenler.map((x) => [x.isci_id, Number(x.gelen_gun)]));
-    const GUNLUK_MAAS = 30;
+
+    // ✅ Maaş qaydaları map: (mekan|vezife) -> gunluk_maas
+    const [rules] = await pool.query(`
+      SELECT mekan, vezife, gunluk_maas
+      FROM maas_qaydalar
+      WHERE aktiv=1
+    `);
+    const ruleMap = new Map(
+      rules.map((r) => [`${String(r.mekan).toLowerCase()}|${String(r.vezife).toLowerCase()}`, Number(r.gunluk_maas)])
+    );
+
+    // ✅ Hər işçiyə ən çox GIRIS etdiyi məkana görə maaş seçək (ay ərzində)
+    const [mekanSay] = await pool.query(
+      `
+      SELECT isci_id, mekan, COUNT(*) cnt
+      FROM loglar
+      WHERE hadise='GIRIS'
+        AND status='OK'
+        AND DATE(tarix_saat) BETWEEN ? AND ?
+      GROUP BY isci_id, mekan
+      `,
+      [start, end]
+    );
+
+    // isci_id -> dominant mekan
+    const dominantMekan = new Map();
+    for (const row of mekanSay) {
+      const id = row.isci_id;
+      const cur = dominantMekan.get(id);
+      if (!cur || row.cnt > cur.cnt) dominantMekan.set(id, { mekan: row.mekan, cnt: row.cnt });
+    }
 
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Maas");
@@ -305,12 +581,14 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
       { header: "Ad", key: "ad", width: 14 },
       { header: "Soyad", key: "soyad", width: 16 },
       { header: "Vəzifə", key: "vezife", width: 14 },
+      { header: "Məkan (dominant)", key: "mekan", width: 18 },
       { header: "Ay", key: "ay", width: 10 },
       { header: "Ay gün sayı", key: "ay_gun", width: 12 },
       { header: "Gəldiyi gün", key: "gelen", width: 12 },
       { header: "Gəlmədiyi gün", key: "gelmeyen", width: 14 },
       { header: "Günlük maaş", key: "gunluk", width: 12 },
       { header: "Maaş cəmi", key: "cem", width: 12 },
+      { header: "Qayda tapıldı?", key: "qayda", width: 12 },
     ];
 
     ws.getRow(1).font = { bold: true };
@@ -318,19 +596,46 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
     for (const i of isciler) {
       const gelen = gelenMap.get(i.id) || 0;
       const gelmeyen = daysInMonth - gelen;
-      const cem = gelen * GUNLUK_MAAS;
+
+      const dom = dominantMekan.get(i.id);
+      const mekan = dom?.mekan || "";
+
+      // default (əgər qayda tapılmasa)
+      let gunluk = 30;
+
+    const key =
+  `${String(mekan).trim().toLowerCase()}|${String(i.vezife).trim().toLowerCase()}`;
+
+      const rule = ruleMap.get(key);
+
+      console.log("CHECK:", {
+  isci: i.ad,
+  vezife: i.vezife,
+  mekan,
+  key,
+  rule,
+});
+
+
+      const ruleFound = rule !== undefined;
+
+      if (ruleFound) gunluk = rule;
+
+      const cem = gelen * gunluk;
 
       ws.addRow({
         id: i.id,
         ad: i.ad,
         soyad: i.soyad,
         vezife: i.vezife,
+        mekan: mekan || "-",
         ay: month,
         ay_gun: daysInMonth,
         gelen,
         gelmeyen,
-        gunluk: GUNLUK_MAAS,
+        gunluk,
         cem,
+        qayda: ruleFound ? "Bəli" : "Yox",
       });
     }
 
@@ -454,7 +759,6 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
       ]
     );
 
-    // ✅ TELEGRAM MESAJ (status + qeyd də daxil)
     const vaxt = new Date().toLocaleString();
     const mesajText = `📌 Davamiyyət Bildirişi
 👤 ${ad} ${soyad}
@@ -465,15 +769,11 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 📝 Qeyd: ${qeyd || "-"}
 ⏰ ${vaxt}`;
 
-    // ŞƏKİL URL:
-    // Telegram LOCALHOST-u GÖRMÜR. Ona görə, əgər PUBLIC_URL varsa onu istifadə edirik.
-    // Məs: PUBLIC_URL=https://xxxx.ngrok-free.app
     const baseUrl = process.env.PUBLIC_URL || "http://localhost:3000";
     const photoUrl = `${baseUrl}${kamera_sekil_url}`;
 
     await sendTelegramMessage(mesajText, photoUrl);
 
-    // ✅ cavab (1 dəfə!)
     return res.json({ ok: true, log_id: ins.insertId, status, hadise, kamera_sekil_url, qeyd });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -481,13 +781,14 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 });
 
 // ----------------------
-// Listen  (MÜTLƏQ FAYLIN ƏN SONUNDA)
+// Listen
 // ----------------------
 const PORT = 3000;
+
 app.get("/test-telegram-photo", async (req, res) => {
   try {
     const baseUrl = process.env.PUBLIC_URL || "http://localhost:3000";
-    const photoUrl = `${baseUrl}/uploads/loglar/log_1769971969693_726155185.jpg`; // uploads/loglar/test.jpg olmalıdır
+    const photoUrl = `${baseUrl}/uploads/loglar/log_1769971969693_726155185.jpg`;
 
     await sendTelegramMessage("Test şəkilli mesaj ✅", photoUrl);
     res.json({ ok: true, photoUrl });

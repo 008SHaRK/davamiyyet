@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin - Maaş Qaydaları</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;margin:0;background:#f3f4f6;color:#111827}
+    header{background:#0f172a;color:#fff;padding:14px 16px;position:sticky;top:0;z-index:10}
+    header .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    header a{padding:8px 12px;background:#374151;border-radius:10px;color:#fff;text-decoration:none;font-size:14px}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .card{background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:14px;margin-bottom:14px}
+    .row{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:760px){.row{grid-template-columns:2fr 2fr 1fr auto}}
+    input,button{padding:11px 12px;font-size:15px;border-radius:10px;border:1px solid #d1d5db}
+    button{background:#2563eb;color:#fff;border:none;font-weight:700;cursor:pointer}
+    button.danger{background:#dc2626}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:14px}
+    th{background:#f9fafb}
+    .muted{opacity:.75}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:700;font-size:12px}
+    .ok{background:#dcfce7;color:#166534}
+    .off{background:#fee2e2;color:#991b1b}
+    .topline{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .msg{margin-top:8px;font-size:13px}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div><b>Admin Panel</b> — Maaş Qaydaları</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="/admin">Loglar</a>
+      <a href="/admin/isciler">İşçilər</a>
+      <a href="/admin/telegram">Telegram</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="topline">
+      <b>Yeni qayda əlavə et</b>
+      <span class="muted">Məs: corndog + kassir = 30</span>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <input id="mekan" placeholder="Məkan (məs: corndog, popcorn)" />
+      <input id="vezife" placeholder="Vəzifə (məs: kassir, satici)" />
+      <input id="gunluk" type="number" step="0.01" placeholder="Günlük maaş" />
+      <button id="saveBtn">Yadda saxla</button>
+    </div>
+
+    <div id="msg" class="msg muted"></div>
+  </div>
+
+  <div class="card">
+    <div class="topline">
+      <b>Aktiv qaydalar</b>
+      <span id="info" class="muted">Yüklənir...</span>
+    </div>
+
+    <div style="overflow:auto;margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Məkan</th>
+            <th>Vəzifə</th>
+            <th>Günlük</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const tbody = document.getElementById("tbody");
+  const info = document.getElementById("info");
+  const msg = document.getElementById("msg");
+
+  function showMsg(t, ok=true){
+    msg.textContent = t || "";
+    msg.className = "msg " + (ok ? "" : "muted");
+  }
+
+  async function safeJson(res){
+    const text = await res.text();
+    try { return { ok:true, data: JSON.parse(text) }; }
+    catch { return { ok:false, raw:text }; }
+  }
+
+  async function loadRules(){
+    info.textContent = "Yüklənir...";
+    tbody.innerHTML = "";
+
+    const res = await fetch("/api/admin/maas/qaydalar");
+    const parsed = await safeJson(res);
+
+    if (!res.ok) {
+      info.textContent = "Xəta";
+      alert("Load xətası: " + (parsed.ok ? JSON.stringify(parsed.data) : parsed.raw));
+      return;
+    }
+
+    const rows = parsed.data || [];
+    info.textContent = `Say: ${rows.length}`;
+
+    for (const r of rows){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.id}</td>
+        <td>${r.mekan}</td>
+        <td>${r.vezife}</td>
+        <td>${Number(r.gunluk_maas).toFixed(2)}</td>
+        <td><span class="pill ok">AKTİV</span></td>
+        <td style="text-align:right">
+          <button class="danger" data-id="${r.id}">Sil</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // sil button handler
+    tbody.querySelectorAll("button.danger").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const id = btn.getAttribute("data-id");
+        if (!confirm("Bu qaydanı silmək istəyirsən?")) return;
+
+        const delRes = await fetch("/api/admin/maas/qaydalar/" + id, { method: "DELETE" });
+        const delParsed = await safeJson(delRes);
+
+        if (!delRes.ok) {
+          alert("Sil xətası: " + (delParsed.ok ? JSON.stringify(delParsed.data) : delParsed.raw));
+          return;
+        }
+
+        await loadRules();
+      });
+    });
+  }
+
+  async function addRule(){
+    const mekan = document.getElementById("mekan").value.trim();
+    const vezife = document.getElementById("vezife").value.trim();
+    const gunluk_maas = document.getElementById("gunluk").value;
+
+    if(!mekan || !vezife || !gunluk_maas){
+      alert("Məkan, vəzifə, günlük maaş boş ola bilməz");
+      return;
+    }
+
+    const res = await fetch("/api/admin/maas/qaydalar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mekan, vezife, gunluk_maas: Number(gunluk_maas) })
+    });
+
+    const parsed = await safeJson(res);
+
+    if (!res.ok) {
+      alert("Yadda saxla xətası: " + (parsed.ok ? JSON.stringify(parsed.data) : parsed.raw));
+      return;
+    }
+
+    document.getElementById("mekan").value = "";
+    document.getElementById("vezife").value = "";
+    document.getElementById("gunluk").value = "";
+    showMsg("✅ Yadda saxlandı. Siyahı yeniləndi.");
+
+    await loadRules();
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", addRule);
+
+  // səhifə açılan kimi yüklə
+  loadRules();
+</script>
+
+</body>
+</html>

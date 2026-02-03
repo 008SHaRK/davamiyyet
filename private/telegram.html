@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin - Telegram icazəli nömrələr</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f3f4f6}
+    header{background:#111827;color:#fff;padding:14px 16px;position:sticky;top:0}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    a{color:#fff;text-decoration:none}
+    .btnLink{padding:8px 10px;background:#374151;border-radius:10px}
+    .box{background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,button{padding:10px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:10px}
+    input{flex:1;min-width:220px}
+    button{cursor:pointer;background:#111827;color:#fff;border:none}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .mini{font-size:12px;opacity:.8}
+    .ok{color:#0a7b2e;font-weight:700}
+    .bad{color:#b00020;font-weight:700}
+    table{width:100%;border-collapse:collapse;margin-top:14px}
+    th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:14px;vertical-align:middle}
+    th{background:#f9fafb}
+    .del{background:#b00020}
+    @media (max-width:560px){
+      th:nth-child(1), td:nth-child(1){width:52px}
+      .row{flex-direction:column}
+      input{min-width:unset;width:100%}
+      button{width:100%}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap top">
+    <div>
+      <b>Telegram icazəli nömrələr</b>
+      <div class="mini">Yalnız bu siyahıdakı nömrələr /start edəndə abunə ola bilir</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <a class="btnLink" href="/admin">← Loglar</a>
+      <a class="btnLink" href="/admin/isciler">İşçilər</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="box">
+    <h3 style="margin:0 0 10px">Yeni nömrə əlavə et</h3>
+
+    <div class="row">
+      <input id="telefon" placeholder="+994501234567" />
+      <button id="add">Əlavə et</button>
+    </div>
+
+    <div class="mini" style="margin-top:8px">
+      Format: <b>+994...</b> (boşluq, mötərizə yazma)
+    </div>
+
+    <div id="msg" style="margin-top:10px"></div>
+
+    <h3 style="margin:18px 0 6px">Siyahı</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Telefon</th>
+          <th>Sil</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const tbody = document.getElementById("tbody");
+  const msg = document.getElementById("msg");
+  const telefonInp = document.getElementById("telefon");
+  const addBtn = document.getElementById("add");
+
+  function show(text, ok=true){
+    msg.innerHTML = `<span class="${ok ? "ok" : "bad"}">${text}</span>`;
+  }
+
+  async function load(){
+    tbody.innerHTML = `<tr><td colspan="3" class="mini">Yüklənir...</td></tr>`;
+    const r = await fetch("/api/admin/telegram/icazeli");
+    const rows = await r.json();
+
+    tbody.innerHTML = "";
+    for(const x of rows){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${x.id}</td>
+        <td>${x.telefon}</td>
+        <td><button class="del" data-id="${x.id}">Sil</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    tbody.querySelectorAll(".del").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const id = btn.getAttribute("data-id");
+        if(!confirm("Bu nömrəni silmək istədiyinə əminsən?")) return;
+
+        const resp = await fetch("/api/admin/telegram/icazeli/" + id, { method:"DELETE" });
+        const raw = await resp.text();
+        let data = {};
+        try { data = JSON.parse(raw); } catch {}
+
+        if(!resp.ok){
+          show(data.error || raw || "Xəta", false);
+          return;
+        }
+        show("Silindi ✅", true);
+        load();
+      });
+    });
+  }
+
+  addBtn.addEventListener("click", async ()=>{
+    const telefon = telefonInp.value.trim();
+    if(!telefon) return show("Telefon boş ola bilməz", false);
+
+    addBtn.disabled = true;
+
+    const resp = await fetch("/api/admin/telegram/icazeli", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ telefon })
+    });
+
+    const raw = await resp.text();
+    let data = {};
+    try { data = JSON.parse(raw); } catch {}
+
+    addBtn.disabled = false;
+
+    if(!resp.ok){
+      show(data.error || raw || "Xəta", false);
+      return;
+    }
+
+    show("Əlavə olundu ✅", true);
+    telefonInp.value = "";
+    load();
+  });
+
+  load();
+</script>
+</body>
+</html>

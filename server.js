@@ -448,9 +448,15 @@ app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
     `);
     res.json(rows);
   }  catch (err) {
-  console.error("API /api/admin/isciler ERROR:", err);
-  return res.status(500).json({ error: err.message || String(err) });
+  console.error("API /api/admin/isciler ERROR FULL:", err);
+  return res.status(500).json({
+    error: err?.message || err?.code || err?.name || String(err),
+    code: err?.code,
+    errno: err?.errno,
+    sqlState: err?.sqlState,
+  });
 }
+
 
 });
 

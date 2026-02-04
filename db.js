@@ -1,13 +1,12 @@
 const mysql = require("mysql2/promise");
 require("dotenv").config();
 
-const url = process.env.DATABASE_URL || process.env.MYSQL_PUBLIC_URL || process.env.MYSQL_URL;
+const url =
+  process.env.DATABASE_URL ||
+  process.env.MYSQL_PUBLIC_URL ||
+  process.env.MYSQL_URL;
 
-if (!url) {
-  console.error("❌ DB URL is missing. Set DATABASE_URL (or MYSQL_PUBLIC_URL/MYSQL_URL) in Render env.");
-} else {
-  console.log("✅ DB URL is set (length):", url.length);
-}
+console.log("DB URL exists?", !!url);
 
 const pool = url
   ? mysql.createPool(url)

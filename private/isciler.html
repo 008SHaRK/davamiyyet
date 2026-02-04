@@ -95,6 +95,18 @@
     return new Date(x).toLocaleString();
   }
 
+  // ✅ Basic Auth (Admin)
+  const ADMIN_USER = "admin";
+  const ADMIN_PASS = "12345";
+  const ADMIN_TOKEN = btoa(`${ADMIN_USER}:${ADMIN_PASS}`);
+
+  function authHeaders(extra = {}) {
+    return {
+      ...extra,
+      Authorization: `Basic ${ADMIN_TOKEN}`,
+    };
+  }
+
   // ---------- Face models ----------
   let modelsReady = false;
 
@@ -126,7 +138,11 @@
     try {
       tbody.innerHTML = "";
 
-      const r = await fetch("/api/admin/isciler");
+      // ✅ AUTH əlavə olundu
+      const r = await fetch("/api/admin/isciler", {
+        headers: authHeaders(),
+      });
+
       if (!r.ok) {
         const t = await r.text();
         show("İşçilər yüklənmədi: " + r.status + " " + t, false);
@@ -152,7 +168,6 @@
           <td>${x.vezife}</td>
           <td><span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></td>
 
-          <!-- ✅ həmişə IMG var: yoxdursa gizli -->
           <td>
             <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
           </td>
@@ -225,8 +240,11 @@
             fd.append("descriptor", JSON.stringify(desc));
 
             console.log("FETCH START...");
+
+            // ✅ AUTH əlavə olundu (upload)
             const resp = await fetch(`/api/admin/isciler/${x.id}/ref`, {
               method: "POST",
+              headers: authHeaders(),
               body: fd,
             });
 
@@ -275,9 +293,10 @@
 
       if (!ad || !soyad || !vezife) return show("Ad/Soyad/Vəzifə boş ola bilməz", false);
 
+      // ✅ AUTH + JSON header
       const r = await fetch("/api/admin/isciler", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ ad, soyad, vezife }),
       });
 
@@ -299,7 +318,9 @@
     }
   });
 
+  // ilk yükləmə
   load();
 </script>
+
 </body>
 </html>

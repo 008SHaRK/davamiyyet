@@ -783,7 +783,7 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 // ----------------------
 // Listen
 // ----------------------
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.get("/test-telegram-photo", async (req, res) => {
   try {
@@ -797,6 +797,6 @@ app.get("/test-telegram-photo", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log("Server isledi: http://localhost:" + PORT);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server isledi, port:", PORT);
 });

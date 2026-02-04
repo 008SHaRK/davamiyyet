@@ -447,9 +447,11 @@ app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
       LIMIT 200
     `);
     res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  }  catch (err) {
+  console.error("API /api/admin/isciler ERROR:", err);
+  return res.status(500).json({ error: err.message || String(err) });
+}
+
 });
 
 // İşçi əlavə et

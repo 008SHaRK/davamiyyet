@@ -7,14 +7,14 @@ const multer = require("multer");
 const ExcelJS = require("exceljs");
 const axios = require("axios");
 
+// ✅ Postgres pool (db.js-dən gəlir)
 const pool = require("./db");
 
 const app = express();
 app.use(cors());
 
-// ✅ 2 dəfə yazmağa ehtiyac yoxdur, amma sənin dediyin kimi saxlayıram
+// JSON
 app.use(express.json({ limit: "10mb" }));
-app.use(express.json());
 
 // Static
 app.use("/uploads", express.static("uploads"));
@@ -36,7 +36,7 @@ function euclideanDistance(a, b) {
 const FACE_THRESHOLD = Number(process.env.FACE_THRESHOLD || 0.55);
 
 // ----------------------
-// ✅ ƏLAVƏ: telefon normallaşdırma
+// Telefon normallaşdırma
 // ----------------------
 function normPhone(p) {
   if (!p) return null;
@@ -70,7 +70,7 @@ function requireAdmin(req, res, next) {
 }
 
 // ----------------------
-// Telegram helper  ✅ DƏYİŞDİ: artıq seçilmiş nömrələr (abonələr)
+// Telegram helper (abonələrə göndər)
 // ----------------------
 async function sendTelegramMessage(text, imageUrl = null) {
   try {
@@ -81,8 +81,10 @@ async function sendTelegramMessage(text, imageUrl = null) {
       return;
     }
 
-    // ✅ Yalnız aktiv abonələrə göndər
-    const [subs] = await pool.query(`SELECT chat_id FROM telegram_abuneler WHERE aktiv=1`);
+    // ✅ yalnız aktiv abonələr
+    const { rows: subs } = await pool.query(
+      `SELECT chat_id FROM telegram_abuneler WHERE aktiv=TRUE`
+    );
 
     if (!subs.length) {
       console.log("Aktiv telegram abonə yoxdur. /start edib nömrəni göndərməlidirlər.");
@@ -117,7 +119,7 @@ async function sendTelegramMessage(text, imageUrl = null) {
 }
 
 // ----------------------
-// ✅ ƏLAVƏ: Telegram webhook (seçilmiş nömrələr / icazə)
+// Telegram webhook (abonə / icazə)
 // ----------------------
 app.post("/telegram/webhook", async (req, res) => {
   try {
@@ -130,7 +132,6 @@ app.post("/telegram/webhook", async (req, res) => {
 
     const chatId = msg.chat?.id;
     const text = (msg.text || "").trim();
-
     if (!chatId) return res.json({ ok: true });
 
     // /start -> contact istə
@@ -162,8 +163,8 @@ app.post("/telegram/webhook", async (req, res) => {
       }
 
       // icazəli siyahıda varmı?
-      const [allow] = await pool.query(
-        `SELECT id FROM telegram_icazeli WHERE telefon=? LIMIT 1`,
+      const { rows: allow } = await pool.query(
+        `SELECT id FROM telegram_icazeli WHERE telefon=$1 LIMIT 1`,
         [phoneFixed]
       );
 
@@ -173,10 +174,12 @@ app.post("/telegram/webhook", async (req, res) => {
           text: "⛔ Bu nömrə icazəli siyahıda deyil. Admin ilə əlaqə saxla.",
         });
 
+        // chat_id unikaldırsa ON CONFLICT işləyəcək
         await pool.query(
           `INSERT INTO telegram_abuneler (chat_id, telefon, aktiv)
-           VALUES (?,?,0)
-           ON DUPLICATE KEY UPDATE telefon=VALUES(telefon), aktiv=0`,
+           VALUES ($1,$2,FALSE)
+           ON CONFLICT (chat_id)
+           DO UPDATE SET telefon=EXCLUDED.telefon, aktiv=FALSE`,
           [chatId, phoneFixed]
         );
 
@@ -186,8 +189,9 @@ app.post("/telegram/webhook", async (req, res) => {
       // icazəlidirsə aktiv et
       await pool.query(
         `INSERT INTO telegram_abuneler (chat_id, telefon, aktiv)
-         VALUES (?,?,1)
-         ON DUPLICATE KEY UPDATE telefon=VALUES(telefon), aktiv=1`,
+         VALUES ($1,$2,TRUE)
+         ON CONFLICT (chat_id)
+         DO UPDATE SET telefon=EXCLUDED.telefon, aktiv=TRUE`,
         [chatId, phoneFixed]
       );
 
@@ -208,13 +212,11 @@ app.post("/telegram/webhook", async (req, res) => {
 });
 
 // ----------------------
-// ✅ Telegram Admin APIs (icazeli telefonlar)
+// Telegram Admin APIs (icazeli telefonlar)
 // ----------------------
-
-// icazeli siyahi
 app.get("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT id, telefon, yaradildi
       FROM telegram_icazeli
       ORDER BY id DESC
@@ -226,7 +228,6 @@ app.get("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
   }
 });
 
-// icazeli elave et
 app.post("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
   try {
     let { telefon } = req.body || {};
@@ -234,31 +235,29 @@ app.post("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
 
     if (!telefon) return res.status(400).json({ error: "telefon bos ola bilmez" });
 
-    // təkrar varsa
-    const [ex] = await pool.query(
-      `SELECT id FROM telegram_icazeli WHERE telefon=? LIMIT 1`,
+    const { rows: ex } = await pool.query(
+      `SELECT id FROM telegram_icazeli WHERE telefon=$1 LIMIT 1`,
       [telefon]
     );
     if (ex.length) return res.status(409).json({ error: "bu nomre artiq icazelidir" });
 
-    const [ins] = await pool.query(
-      `INSERT INTO telegram_icazeli (telefon) VALUES (?)`,
+    const { rows: insRows } = await pool.query(
+      `INSERT INTO telegram_icazeli (telefon) VALUES ($1) RETURNING id`,
       [telefon]
     );
 
-    res.json({ ok: true, id: ins.insertId, telefon });
+    res.json({ ok: true, id: insRows[0].id, telefon });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// icazeli sil
 app.delete("/api/admin/telegram/icazeli/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ error: "id yanlisdir" });
 
-    await pool.query(`DELETE FROM telegram_icazeli WHERE id=?`, [id]);
+    await pool.query(`DELETE FROM telegram_icazeli WHERE id=$1`, [id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -266,16 +265,14 @@ app.delete("/api/admin/telegram/icazeli/:id", requireAdmin, async (req, res) => 
 });
 
 // ----------------------
-// ✅ MAAŞ QAYDALARI (mekan + vezife -> gunluk_maas)
+// Maaş qaydaları
 // ----------------------
-
-// 1) Qaydaları gətir
 app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT id, mekan, vezife, gunluk_maas, aktiv, yaradildi
       FROM maas_qaydalar
-      WHERE aktiv=1
+      WHERE aktiv=TRUE
       ORDER BY mekan, vezife
     `);
     res.json(rows);
@@ -284,7 +281,7 @@ app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   }
 });
 
-// 2) Qayda əlavə et / yenilə (eyni mekan+vezife varsa update edir)
+// ✅ UNIQUE(mekan, vezife) olmalıdır (aşağıda SQL var)
 app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
     let { mekan, vezife, gunluk_maas } = req.body || {};
@@ -296,15 +293,15 @@ app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
     if (!mekan || !vezife) return res.status(400).json({ error: "mekan ve vezife bos ola bilmez" });
     if (!Number.isFinite(g) || g < 0) return res.status(400).json({ error: "gunluk_maas duzgun deyil" });
 
-    // normalize (case-insensitive olsun)
     const m = mekan.toLowerCase();
     const v = vezife.toLowerCase();
 
     await pool.query(
       `
       INSERT INTO maas_qaydalar (mekan, vezife, gunluk_maas, aktiv)
-      VALUES (?,?,?,1)
-      ON DUPLICATE KEY UPDATE gunluk_maas=VALUES(gunluk_maas), aktiv=1
+      VALUES ($1,$2,$3,TRUE)
+      ON CONFLICT (mekan, vezife)
+      DO UPDATE SET gunluk_maas=EXCLUDED.gunluk_maas, aktiv=TRUE
       `,
       [m, v, g]
     );
@@ -315,13 +312,12 @@ app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   }
 });
 
-// 3) Qaydanı sil (deaktiv)
 app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ error: "id yanlisdir" });
 
-    await pool.query(`UPDATE maas_qaydalar SET aktiv=0 WHERE id=?`, [id]);
+    await pool.query(`UPDATE maas_qaydalar SET aktiv=FALSE WHERE id=$1`, [id]);
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -394,7 +390,6 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-// ✅ ƏLAVƏ: Telegram test route (işləyirsə, botdan mesaj gəlməlidir)
 app.get("/api/test-telegram", async (req, res) => {
   await sendTelegramMessage("✅ Test mesaj: serverdən Telegrama gəldi.");
   res.json({ ok: true });
@@ -403,11 +398,9 @@ app.get("/api/test-telegram", async (req, res) => {
 // ----------------------
 // Admin APIs
 // ----------------------
-
-// Loglar (son 50)
 app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT 
         l.id,
         l.tarix_saat,
@@ -437,30 +430,24 @@ app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
   }
 });
 
-// İşçilər siyahısı
 app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { rows } = await pool.query(`
       SELECT id, ad, soyad, vezife, aktiv, yaradildi, ref_sekil_url, profil_sekil_url
       FROM isciler
       ORDER BY id DESC
       LIMIT 200
     `);
     res.json(rows);
-  }  catch (err) {
-  console.error("API /api/admin/isciler ERROR FULL:", err);
-  return res.status(500).json({
-    error: err?.message || err?.code || err?.name || String(err),
-    code: err?.code,
-    errno: err?.errno,
-    sqlState: err?.sqlState,
-  });
-}
-
-
+  } catch (err) {
+    console.error("API /api/admin/isciler ERROR FULL:", err);
+    return res.status(500).json({
+      error: err?.message || err?.code || err?.name || String(err),
+      code: err?.code,
+    });
+  }
 });
 
-// İşçi əlavə et
 app.post("/api/admin/isciler", requireAdmin, async (req, res) => {
   try {
     const { ad, soyad, vezife } = req.body;
@@ -473,28 +460,28 @@ app.post("/api/admin/isciler", requireAdmin, async (req, res) => {
     const S = soyad.trim();
     const V = vezife.trim();
 
-    const [exists] = await pool.query(
+    const { rows: exists } = await pool.query(
       `SELECT id FROM isciler
-       WHERE LOWER(ad)=LOWER(?) AND LOWER(soyad)=LOWER(?) AND LOWER(vezife)=LOWER(?)
+       WHERE LOWER(ad)=LOWER($1) AND LOWER(soyad)=LOWER($2) AND LOWER(vezife)=LOWER($3)
        LIMIT 1`,
       [A, S, V]
     );
 
     if (exists.length) return res.status(409).json({ error: "Bu isci artiq var" });
 
-    const [ins] = await pool.query(
+    const { rows: insRows } = await pool.query(
       `INSERT INTO isciler (ad, soyad, vezife, aktiv)
-       VALUES (?,?,?,1)`,
+       VALUES ($1,$2,$3,TRUE)
+       RETURNING id`,
       [A, S, V]
     );
 
-    res.json({ ok: true, id: ins.insertId });
+    res.json({ ok: true, id: insRows[0].id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Referans şəkil + descriptor yaz
 app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -506,7 +493,7 @@ app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), as
     const ref_sekil_url = `/uploads/ref/${req.file.filename}`;
 
     await pool.query(
-      `UPDATE isciler SET ref_sekil_url=?, ref_descriptor=? WHERE id=?`,
+      `UPDATE isciler SET ref_sekil_url=$1, ref_descriptor=$2 WHERE id=$3`,
       [ref_sekil_url, req.body.descriptor, id]
     );
 
@@ -516,7 +503,7 @@ app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), as
   }
 });
 
-// Maaş Excel (✅ indi vezife+mekan qaydası ilə)
+// Maaş Excel
 app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
   try {
     const month = (req.query.month || "").trim();
@@ -530,19 +517,19 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
     const start = `${month}-01`;
     const end = `${month}-${String(daysInMonth).padStart(2, "0")}`;
 
-    const [isciler] = await pool.query(`
+    const { rows: isciler } = await pool.query(`
       SELECT id, ad, soyad, vezife, aktiv
       FROM isciler
       ORDER BY id
     `);
 
-    const [gelenler] = await pool.query(
+    const { rows: gelenler } = await pool.query(
       `
-      SELECT isci_id, COUNT(DISTINCT DATE(tarix_saat)) AS gelen_gun
+      SELECT isci_id, COUNT(DISTINCT tarix_saat::date) AS gelen_gun
       FROM loglar
       WHERE hadise='GIRIS'
         AND status='OK'
-        AND DATE(tarix_saat) BETWEEN ? AND ?
+        AND tarix_saat::date BETWEEN $1 AND $2
       GROUP BY isci_id
       `,
       [start, end]
@@ -550,30 +537,31 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
 
     const gelenMap = new Map(gelenler.map((x) => [x.isci_id, Number(x.gelen_gun)]));
 
-    // ✅ Maaş qaydaları map: (mekan|vezife) -> gunluk_maas
-    const [rules] = await pool.query(`
+    const { rows: rules } = await pool.query(`
       SELECT mekan, vezife, gunluk_maas
       FROM maas_qaydalar
-      WHERE aktiv=1
+      WHERE aktiv=TRUE
     `);
+
     const ruleMap = new Map(
-      rules.map((r) => [`${String(r.mekan).toLowerCase()}|${String(r.vezife).toLowerCase()}`, Number(r.gunluk_maas)])
+      rules.map((r) => [
+        `${String(r.mekan).toLowerCase()}|${String(r.vezife).toLowerCase()}`,
+        Number(r.gunluk_maas),
+      ])
     );
 
-    // ✅ Hər işçiyə ən çox GIRIS etdiyi məkana görə maaş seçək (ay ərzində)
-    const [mekanSay] = await pool.query(
+    const { rows: mekanSay } = await pool.query(
       `
       SELECT isci_id, mekan, COUNT(*) cnt
       FROM loglar
       WHERE hadise='GIRIS'
         AND status='OK'
-        AND DATE(tarix_saat) BETWEEN ? AND ?
+        AND tarix_saat::date BETWEEN $1 AND $2
       GROUP BY isci_id, mekan
       `,
       [start, end]
     );
 
-    // isci_id -> dominant mekan
     const dominantMekan = new Map();
     for (const row of mekanSay) {
       const id = row.isci_id;
@@ -608,23 +596,10 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
       const dom = dominantMekan.get(i.id);
       const mekan = dom?.mekan || "";
 
-      // default (əgər qayda tapılmasa)
       let gunluk = 30;
 
-    const key =
-  `${String(mekan).trim().toLowerCase()}|${String(i.vezife).trim().toLowerCase()}`;
-
+      const key = `${String(mekan).trim().toLowerCase()}|${String(i.vezife).trim().toLowerCase()}`;
       const rule = ruleMap.get(key);
-
-      console.log("CHECK:", {
-  isci: i.ad,
-  vezife: i.vezife,
-  mekan,
-  key,
-  rule,
-});
-
-
       const ruleFound = rule !== undefined;
 
       if (ruleFound) gunluk = rule;
@@ -683,10 +658,10 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 
     const kamera_sekil_url = `/uploads/loglar/${req.file.filename}`;
 
-    const [isciRows] = await pool.query(
+    const { rows: isciRows } = await pool.query(
       `SELECT id, aktiv, ref_descriptor
        FROM isciler
-       WHERE LOWER(ad)=LOWER(?) AND LOWER(soyad)=LOWER(?) AND LOWER(vezife)=LOWER(?)
+       WHERE LOWER(ad)=LOWER($1) AND LOWER(soyad)=LOWER($2) AND LOWER(vezife)=LOWER($3)
        LIMIT 1`,
       [ad.trim(), soyad.trim(), vezife.trim()]
     );
@@ -698,12 +673,10 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
     let status = "OK";
     let qeyd = null;
 
-    // işçi yox / deaktiv
-    if (!isci_id || isci.aktiv !== 1) {
+    if (!isci_id || isci.aktiv !== true) {
       status = "REJECT";
       qeyd = !isci_id ? "isci tapilmadi" : "isci deaktivdir";
     } else {
-      // face match
       let refDesc = null;
       try {
         refDesc = isci.ref_descriptor ? JSON.parse(isci.ref_descriptor) : null;
@@ -727,12 +700,11 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
         }
       }
 
-      // üz uyğundursa limit qaydası
       if (status === "OK") {
-        const [todayRows] = await pool.query(
+        const { rows: todayRows } = await pool.query(
           `SELECT hadise
            FROM loglar
-           WHERE isci_id=? AND DATE(tarix_saat)=CURDATE() AND status='OK'`,
+           WHERE isci_id=$1 AND tarix_saat::date = CURRENT_DATE AND status='OK'`,
           [isci_id]
         );
 
@@ -749,11 +721,11 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
       }
     }
 
-    // 6) log yaz (hər halda)
-    const [ins] = await pool.query(
+    const { rows: insRows } = await pool.query(
       `INSERT INTO loglar
         (isci_id, mekan, hadise, kamera_sekil_url, status, qeyd, ad, soyad, vezife)
-       VALUES (?,?,?,?,?,?,?,?,?)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING id`,
       [
         isci_id,
         mekan.trim(),
@@ -766,6 +738,8 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
         vezife.trim(),
       ]
     );
+
+    const log_id = insRows[0].id;
 
     const vaxt = new Date().toLocaleString();
     const mesajText = `📌 Davamiyyət Bildirişi
@@ -782,7 +756,7 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 
     await sendTelegramMessage(mesajText, photoUrl);
 
-    return res.json({ ok: true, log_id: ins.insertId, status, hadise, kamera_sekil_url, qeyd });
+    return res.json({ ok: true, log_id, status, hadise, kamera_sekil_url, qeyd });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -796,8 +770,7 @@ const PORT = process.env.PORT || 3000;
 app.get("/test-telegram-photo", async (req, res) => {
   try {
     const baseUrl = process.env.PUBLIC_URL || "http://localhost:3000";
-    const photoUrl = `${baseUrl}/uploads/loglar/log_1769971969693_726155185.jpg`;
-
+    const photoUrl = `${baseUrl}/uploads/loglar/log_test.jpg`;
     await sendTelegramMessage("Test şəkilli mesaj ✅", photoUrl);
     res.json({ ok: true, photoUrl });
   } catch (e) {

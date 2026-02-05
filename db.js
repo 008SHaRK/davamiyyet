@@ -1,23 +1,17 @@
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 require("dotenv").config();
 
-const url =
-  process.env.DATABASE_URL ||
-  process.env.MYSQL_PUBLIC_URL ||
-  process.env.MYSQL_URL;
+const connectionString = process.env.DATABASE_URL;
 
-console.log("DB URL exists?", !!url);
+if (!connectionString) {
+  console.log("❌ DATABASE_URL yoxdur. Render Environment-də DATABASE_URL yazmalısan.");
+}
 
-const pool = url
-  ? mysql.createPool(url)
-  : mysql.createPool({
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT || 3306),
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      waitForConnections: true,
-      connectionLimit: 10,
-    });
+const pool = new Pool({
+  connectionString,
+  ssl: connectionString?.includes("render.com")
+    ? { rejectUnauthorized: false }
+    : undefined,
+});
 
 module.exports = pool;

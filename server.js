@@ -787,4 +787,3 @@ app.get("/test-telegram-photo", async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server isledi, port:", PORT);
 });
-fappp

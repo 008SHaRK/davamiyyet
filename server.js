@@ -272,7 +272,7 @@ app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
     // ✅ yaradildi sütunu problem verirsə çıxardıq
     const { rows } = await pool.query(`
       SELECT id, mekan, vezife, gunluk_maas, aktiv
-      FROM maas_qaydalari
+      FROM maas_qaydalar
       WHERE aktiv=TRUE
       ORDER BY mekan, vezife
     `);
@@ -299,7 +299,7 @@ app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO maas_qaydalari (mekan, vezife, gunluk_maas, aktiv)
+      INSERT INTO maas_qaydalar (mekan, vezife, gunluk_maas, aktiv)
       VALUES ($1,$2,$3,TRUE)
       ON CONFLICT (mekan, vezife)
       DO UPDATE SET gunluk_maas=EXCLUDED.gunluk_maas, aktiv=TRUE
@@ -318,7 +318,7 @@ app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ error: "id yanlisdir" });
 
-    await pool.query(`UPDATE maas_qaydalari SET aktiv=FALSE WHERE id=$1`, [id]);
+    await pool.query(`UPDATE maas_qaydalar SET aktiv=FALSE WHERE id=$1`, [id]);
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message, code: e?.code });
@@ -545,7 +545,7 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
 
     const { rows: rules } = await pool.query(`
       SELECT mekan, vezife, gunluk_maas
-      FROM maas_qaydalari
+      FROM maas_qaydalar
       WHERE aktiv=TRUE
     `);
 

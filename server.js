@@ -1,11 +1,13 @@
 require("dotenv").config();
 
+const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const ExcelJS = require("exceljs");
 const axios = require("axios");
+const FormData = require("form-data");
 
 // ✅ Postgres pool (db.js-dən gəlir)
 const pool = require("./db");
@@ -16,9 +18,13 @@ app.use(cors());
 // JSON
 app.use(express.json({ limit: "10mb" }));
 
-// Static
-app.use("/uploads", express.static("uploads"));
-app.use(express.static("public"));
+// ✅ Qovluqları mütləq yarat (Render/Linux üçün)
+fs.mkdirSync(path.join(__dirname, "uploads", "loglar"), { recursive: true });
+fs.mkdirSync(path.join(__dirname, "uploads", "ref"), { recursive: true });
+
+// Static (absolute path daha sağlamdır)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // ----------------------
 // Face helper
@@ -70,9 +76,9 @@ function requireAdmin(req, res, next) {
 }
 
 // ----------------------
-// Telegram helper (abonələrə göndər)
+// Telegram helper (abonələrə göndər) - ✅ Faylı birbaşa upload edir
 // ----------------------
-async function sendTelegramMessage(text, imageUrl = null) {
+async function sendTelegramMessage(text, filePath = null) {
   try {
     const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -95,11 +101,16 @@ async function sendTelegramMessage(text, imageUrl = null) {
       const chatId = s.chat_id;
 
       try {
-        if (imageUrl) {
-          await axios.post(`https://api.telegram.org/bot${token}/sendPhoto`, {
-            chat_id: chatId,
-            photo: imageUrl,
-            caption: text,
+        if (filePath) {
+          // ✅ Faylı birbaşa Telegram-a upload et
+          const form = new FormData();
+          form.append("chat_id", String(chatId));
+          form.append("caption", text);
+          form.append("photo", fs.createReadStream(filePath));
+
+          await axios.post(`https://api.telegram.org/bot${token}/sendPhoto`, form, {
+            headers: form.getHeaders(),
+            maxBodyLength: Infinity,
           });
         } else {
           await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -108,6 +119,14 @@ async function sendTelegramMessage(text, imageUrl = null) {
           });
         }
       } catch (err2) {
+        // ✅ fallback: şəkil alınmasa, mətn göndər
+        try {
+          await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+            chat_id: chatId,
+            text: text + "\n\n(Şəkil göndərilə bilmədi)",
+          });
+        } catch {}
+
         const more = err2.response?.data ? JSON.stringify(err2.response.data) : err2.message;
         console.log("Telegram göndərmə xətası:", chatId, more);
       }
@@ -215,7 +234,6 @@ app.post("/telegram/webhook", async (req, res) => {
 // ----------------------
 app.get("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
   try {
-    // ✅ yaradildi sütunu problem verirsə çıxardıq
     const { rows } = await pool.query(`
       SELECT id, telefon
       FROM telegram_icazeli
@@ -269,7 +287,6 @@ app.delete("/api/admin/telegram/icazeli/:id", requireAdmin, async (req, res) => 
 // ----------------------
 app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
-    // ✅ yaradildi sütunu problem verirsə çıxardıq
     const { rows } = await pool.query(`
       SELECT id, mekan, vezife, gunluk_maas, aktiv
       FROM maas_qaydalar
@@ -329,7 +346,7 @@ app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
 // Multer (log şəkil upload)
 // ----------------------
 const logStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/loglar"),
+  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads", "loglar")),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname) || ".jpg";
     const name = `log_${Date.now()}_${Math.floor(Math.random() * 1e9)}${ext}`;
@@ -343,7 +360,7 @@ const uploadLog = multer({
 
 // Referans şəkil upload
 const refStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/ref"),
+  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads", "ref")),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname) || ".jpg";
     cb(null, `ref_${Date.now()}_${Math.floor(Math.random() * 1e9)}${ext}`);
@@ -432,8 +449,6 @@ app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
 });
 
 app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
-
-
   try {
     const { rows } = await pool.query(`
       SELECT 
@@ -757,10 +772,9 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 📝 Qeyd: ${qeyd || "-"}
 ⏰ ${vaxt}`;
 
-    const baseUrl = process.env.PUBLIC_URL || "http://localhost:3000";
-    const photoUrl = `${baseUrl}${kamera_sekil_url}`;
-
-    await sendTelegramMessage(mesajText, photoUrl);
+    // ✅ URL yox, faylın özünü göndəririk
+    const filePath = req.file.path;
+    await sendTelegramMessage(mesajText, filePath);
 
     return res.json({ ok: true, log_id, status, hadise, kamera_sekil_url, qeyd });
   } catch (err) {
@@ -773,12 +787,12 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 // ----------------------
 const PORT = process.env.PORT || 3000;
 
+// ✅ test: şəkil faylı varsa birbaşa Telegram-a upload et
 app.get("/test-telegram-photo", async (req, res) => {
   try {
-    const baseUrl = process.env.PUBLIC_URL || "http://localhost:3000";
-    const photoUrl = `${baseUrl}/uploads/loglar/log_test.jpg`;
-    await sendTelegramMessage("Test şəkilli mesaj ✅", photoUrl);
-    res.json({ ok: true, photoUrl });
+    const testPath = path.join(__dirname, "uploads", "loglar", "log_test.jpg");
+    await sendTelegramMessage("Test şəkilli mesaj ✅", fs.existsSync(testPath) ? testPath : null);
+    res.json({ ok: true, used_file: fs.existsSync(testPath), testPath });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

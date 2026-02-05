@@ -4,195 +4,226 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Admin Panel - Loglar</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
   <style>
-*{box-sizing:border-box}
+    *{box-sizing:border-box}
 
-body{
-  font-family:Arial,sans-serif;
-  margin:0;
-  background:#f3f4f6;
-  color:#111827;
-}
+    body{
+      font-family:Arial,sans-serif;
+      margin:0;
+      background:#f3f4f6;
+      color:#111827;
+    }
 
-/* ---------------- HEADER ---------------- */
+    /* ---------------- HEADER (Desktop + Mobile) ---------------- */
+    header{
+      background:#0f172a;
+      color:#fff;
+      padding:14px 16px;
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
 
-header{
-  background:#0f172a;
-  color:#fff;
-  padding:14px 16px;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
+    header .wrap{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
 
-header .wrap{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-}
+    .basliq{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:220px;
+    }
+    .basliq b{
+      font-size:18px;
+      line-height:1.1;
+    }
+    .basliq .mini{
+      font-size:12px;
+      opacity:.85;
+      line-height:1.3;
+    }
 
-header a{
-  padding:8px 12px;
-  background:#2563eb;
-  border-radius:10px;
-  color:#fff;
-  text-decoration:none;
-  font-size:14px;
-}
+    .menu{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
 
-/* ---------------- LAYOUT ---------------- */
+    .menu a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      background:#374151;
+      border-radius:12px;
+      color:#fff;
+      text-decoration:none;
+      font-size:14px;
+      line-height:1;
+      white-space:nowrap;
+    }
 
-.wrap{
-  max-width:1100px;
-  margin:0 auto;
-  padding:16px;
-}
+    /* Mobile header */
+    @media(max-width:640px){
+      header{padding:12px 12px}
+      header .wrap{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .menu{
+        width:100%;
+        justify-content:flex-start;
+      }
+      .menu a{
+        width:100%;
+      }
+      .basliq b{font-size:16px}
+    }
 
-/* ---------------- CONTROLS ---------------- */
+    /* ---------------- LAYOUT ---------------- */
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px;
+    }
 
-.controls{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  margin-bottom:14px;
-}
+    /* ---------------- CONTROLS ---------------- */
+    .controls{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
 
-.controls input,
-.controls select,
-.controls button{
-  padding:11px 12px;
-  font-size:15px;
-  border-radius:10px;
-  border:1px solid #d1d5db;
-}
+    .controls input,
+    .controls select,
+    .controls button{
+      padding:11px 12px;
+      font-size:15px;
+      border-radius:10px;
+      border:1px solid #d1d5db;
+    }
 
-.controls button{
-  background:#2563eb;
-  color:#fff;
-  border:none;
-  font-weight:600;
-}
+    .controls button{
+      background:#2563eb;
+      color:#fff;
+      border:none;
+      font-weight:600;
+      cursor:pointer;
+    }
 
-/* desktop */
-@media(min-width:640px){
-  .controls{
-    grid-template-columns:2fr 1fr auto auto auto;
-    align-items:center;
-  }
-}
+    /* desktop controls */
+    @media(min-width:640px){
+      .controls{
+        grid-template-columns:2fr 1fr auto 170px auto;
+        align-items:center;
+      }
+    }
 
-/* ---------------- GRID ---------------- */
+    /* ---------------- GRID ---------------- */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:14px;
+    }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:14px;
-}
+    /* ---------------- CARD ---------------- */
+    .card{
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 4px 14px rgba(0,0,0,.08);
+      display:flex;
+      flex-direction:column;
+    }
 
-/* ---------------- CARD ---------------- */
+    .img{
+      width:100%;
+      aspect-ratio:4/3;
+      object-fit:cover;
+      background:#000;
+    }
 
-.card{
-  background:#fff;
-  border-radius:14px;
-  overflow:hidden;
-  box-shadow:0 4px 14px rgba(0,0,0,.08);
-  display:flex;
-  flex-direction:column;
-}
+    .p{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
 
-.img{
-  width:100%;
-  aspect-ratio:4/3;
-  object-fit:cover;
-  background:#000;
-}
+    .name{
+      font-weight:700;
+      font-size:16px;
+      margin:0;
+    }
 
-.p{
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
+    .meta{
+      font-size:13px;
+      color:#374151;
+      margin:0;
+    }
 
-.name{
-  font-weight:700;
-  font-size:16px;
-}
+    .small{
+      opacity:.7;
+      font-size:13px;
+      margin-bottom:10px;
+    }
 
-.meta{
-  font-size:13px;
-  color:#374151;
-}
+    /* ---------------- TAGS ---------------- */
+    .tag{
+      align-self:flex-start;
+      margin-top:6px;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+    }
 
-.small{
-  opacity:.7;
-  font-size:13px;
-  margin-bottom:10px;
-}
+    .ok{background:#dcfce7;color:#166534}
+    .rej{background:#fee2e2;color:#991b1b}
+    .lim{background:#fff7ed;color:#9a3412}
 
-/* ---------------- TAGS ---------------- */
+    /* ---------------- NOTE ---------------- */
+    .note{
+      margin-top:8px;
+      padding:8px 10px;
+      border-radius:10px;
+      background:#f9fafb;
+      border:1px dashed #d1d5db;
+      font-size:13px;
+    }
 
-.tag{
-  align-self:flex-start;
-  margin-top:6px;
-  padding:5px 10px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-}
-
-.ok{background:#dcfce7;color:#166534}
-.rej{background:#fee2e2;color:#991b1b}
-.lim{background:#fff7ed;color:#9a3412}
-
-/* ---------------- NOTE ---------------- */
-
-.note{
-  margin-top:8px;
-  padding:8px 10px;
-  border-radius:10px;
-  background:#f9fafb;
-  border:1px dashed #d1d5db;
-  font-size:13px;
-}
-
-/* ---------------- MOBILE OPTIMIZATION ---------------- */
-
-@media(max-width:480px){
-  header .wrap{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .controls{
-    grid-template-columns:1fr;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-}
-</style>
-
+    /* ---------------- MOBILE OPTIMIZATION ---------------- */
+    @media(max-width:480px){
+      .wrap{padding:12px}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
 </head>
+
 <body>
 <header>
-  <div class="wrap">
-    <b>Admin Panel</b> — şəkilli loglar
-    <a href="/admin/isciler" style="padding:8px 10px;background:#374151;border-radius:10px;color:#fff;text-decoration:none">
-  İşçilər
-</a>
-<a href="/admin/telegram" style="padding:8px 10px;background:#374151;border-radius:10px;color:#fff;text-decoration:none">
-  Telegram
-</a>
-<a href="/admin/maas" style="padding:8px 10px;background:#374151;border-radius:10px;color:#fff;text-decoration:none">
-  Maaş Tarifləri
-</a>
+  <div class="wrap" style="padding:0;max-width:1100px">
+    <div class="basliq">
+      <b>Admin Panel</b>
+      <div class="mini">Şəkilli loglar</div>
+    </div>
 
-
-
+    <div class="menu">
+      <a href="/admin/isciler">İşçilər</a>
+      <a href="/admin/telegram">Telegram</a>
+      <a href="/admin/maas">Maaş Tarifləri</a>
+    </div>
   </div>
 </header>
 
@@ -207,8 +238,7 @@ header a{
     </select>
     <button id="btn">Yenilə</button>
     <input id="ay" type="month" />
-<button id="maasExcel">Maaş Excel</button>
-
+    <button id="maasExcel">Maaş Excel</button>
   </div>
 
   <div id="info" class="small"></div>
@@ -230,7 +260,6 @@ header a{
   }
 
   function fmtDate(iso){
-    // backend UTC göndərə bilər, sadə göstərəcəyik
     const d = new Date(iso);
     return d.toLocaleString();
   }
@@ -268,7 +297,7 @@ header a{
           <p class="meta"><b>Hadisə:</b> ${x.hadise || "-"}</p>
           <p class="meta"><b>Tarix:</b> ${fmtDate(x.tarix_saat)}</p>
           <span class="${tagClass(x.status)}">${x.status}</span>
-           ${x.qeyd ? `<div class="note"><b>Qeyd:</b> ${x.qeyd}</div>` : ``}
+          ${x.qeyd ? `<div class="note"><b>Qeyd:</b> ${x.qeyd}</div>` : ``}
         </div>
       `;
       grid.appendChild(card);
@@ -282,11 +311,10 @@ header a{
   load();
 
   document.getElementById("maasExcel").addEventListener("click", () => {
-  const m = document.getElementById("ay").value; // YYYY-MM
-  if (!m) return alert("Ay seç: məsələn 2026-02");
-  window.location.href = `/api/admin/maas.xlsx?month=${encodeURIComponent(m)}`;
-});
-
+    const m = document.getElementById("ay").value; // YYYY-MM
+    if (!m) return alert("Ay seç: məsələn 2026-02");
+    window.location.href = `/api/admin/maas.xlsx?month=${encodeURIComponent(m)}`;
+  });
 </script>
 </body>
 </html>

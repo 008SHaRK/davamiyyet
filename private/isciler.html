@@ -4,45 +4,178 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Admin - İşçilər</title>
+
   <style>
-    body{font-family:Arial,sans-serif;margin:0;background:#f3f4f6}
-    header{background:#111827;color:#fff;padding:14px 16px;position:sticky;top:0}
+    :root{
+      --bg:#f3f4f6;
+      --dark:#111827;
+      --dark2:#374151;
+      --border:#e5e7eb;
+      --muted:#6b7280;
+      --card:#ffffff;
+    }
+
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;margin:0;background:var(--bg)}
+    a{color:#fff;text-decoration:none}
+
+    header{
+      background:var(--dark);
+      color:#fff;
+      padding:14px 16px;
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+
     .wrap{max-width:1100px;margin:0 auto;padding:16px}
-    .box{background:#fff;border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .basliq-blok{display:flex;flex-direction:column;gap:4px}
+    .basliq-blok b{font-size:18px;line-height:1.1}
+    .basliq-blok .mini{font-size:12px;line-height:1.35;opacity:.85}
+
+    .header-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .header-actions a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      background:var(--dark2);
+      border-radius:12px;
+      font-size:14px;
+      line-height:1;
+      white-space:nowrap;
+    }
+
+    .box{
+      background:var(--card);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:0 6px 20px rgba(0,0,0,.08)
+    }
+
     .row{display:flex;gap:10px;flex-wrap:wrap}
-    input,select,button{padding:10px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:10px}
-    button{cursor:pointer;background:#111827;color:#fff;border:none}
+
+    input,select,button{
+      padding:10px 12px;
+      font-size:14px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      outline:none;
+    }
+
+    input,select{background:#fff}
+    button{cursor:pointer;background:var(--dark);color:#fff;border:none}
     button:disabled{opacity:.6;cursor:not-allowed}
-    table{width:100%;border-collapse:collapse;margin-top:14px}
-    th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:14px;vertical-align:middle}
-    th{background:#f9fafb}
+
+    h3{margin:0 0 10px}
+    .mini{font-size:12px;color:var(--muted)}
     .ok{color:#0a7b2e;font-weight:700}
     .bad{color:#b00020;font-weight:700}
-    a{color:#fff;text-decoration:none}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .mini{font-size:12px;opacity:.8}
-    .img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#e5e7eb}
-    .btn2{background:#374151}
-    .tag{padding:3px 8px;border-radius:999px;font-size:12px;background:#eef2ff;display:inline-block}
+
+    .tag{
+      padding:3px 8px;border-radius:999px;font-size:12px;
+      background:#eef2ff;display:inline-block
+    }
+    .img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--border)}
+    .btn2{background:var(--dark2)}
+
+    /* Desktop table */
+    table{width:100%;border-collapse:collapse;margin-top:14px}
+    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:middle}
+    th{background:#f9fafb}
+
+    /* --- Form layout --- */
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr 220px 140px;
+      gap:10px;
+      align-items:center;
+    }
+    .form-grid input, .form-grid select, .form-grid button{width:100%}
+
+    /* --- Mobile improvements --- */
+    @media (max-width: 640px){
+      header{padding:12px 12px}
+      .wrap{padding:12px}
+      .top{flex-direction:column;align-items:flex-start}
+      .header-actions{width:100%}
+      .header-actions a{width:100%}
+
+      .box{padding:12px}
+
+      .form-grid{
+        grid-template-columns: 1fr;
+      }
+
+      /* Hide table on mobile, show cards */
+      table{display:none}
+      .cards{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+      .card{
+        border:1px solid var(--border);
+        border-radius:14px;
+        padding:12px;
+        background:#fff;
+      }
+      .card-top{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        align-items:flex-start;
+      }
+      .adsoyad{font-weight:700;font-size:15px;line-height:1.2}
+      .meta{font-size:12px;color:var(--muted);margin-top:4px}
+      .right-mini{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+
+      .card-mid{
+        display:flex;
+        gap:10px;
+        align-items:center;
+        margin-top:10px;
+      }
+      .card-mid .img{width:64px;height:64px}
+
+      .upload{
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+      }
+      .upload input{width:100%}
+      .upload button{width:100%}
+      .st{font-size:12px;color:var(--muted)}
+    }
+
+    /* Desktop: cards hidden */
+    .cards{display:none}
   </style>
 </head>
+
 <body>
 <header>
   <div class="wrap top">
-    <div>
+    <div class="basliq-blok">
       <b>İşçilər</b>
       <div class="mini">Referans şəkil (üz yoxlama üçün) buradan yüklənir</div>
     </div>
-    <div style="display:flex;gap:10px">
-      <a href="/admin" style="padding:8px 10px;background:#374151;border-radius:10px">← Loglar</a>
+    <div class="header-actions">
+      <a href="/admin">← Loglar</a>
     </div>
   </div>
 </header>
 
 <div class="wrap">
   <div class="box">
-    <h3 style="margin:0 0 10px">Yeni işçi əlavə et</h3>
-    <div class="row">
+    <h3>Yeni işçi əlavə et</h3>
+
+    <div class="form-grid">
       <input id="ad" placeholder="Ad" />
       <input id="soyad" placeholder="Soyad" />
 
@@ -61,6 +194,7 @@
     <h3 style="margin:16px 0 6px">Siyahı</h3>
     <div class="mini">Qaydası: hər işçiyə 1 referans şəkil yüklə. Sonra QR girişdə üz uyğunluğu yoxlanacaq.</div>
 
+    <!-- Desktop table -->
     <table>
       <thead>
         <tr>
@@ -76,16 +210,18 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
+
+    <!-- Mobile cards -->
+    <div id="cards" class="cards"></div>
   </div>
 </div>
 
 <!-- face-api (browser) -->
 <script src="/face-api.min.js"></script>
 
-
-
 <script>
   const tbody = document.getElementById("tbody");
+  const cards = document.getElementById("cards");
   const msg = document.getElementById("msg");
 
   function show(text, ok = true) {
@@ -135,12 +271,16 @@
     });
   });
 
+  function isMobileView(){
+    return window.matchMedia("(max-width: 640px)").matches;
+  }
+
   // ---------- API ----------
   async function load() {
     try {
       tbody.innerHTML = "";
+      cards.innerHTML = "";
 
-      // ✅ AUTH əlavə olundu
       const r = await fetch("/api/admin/isciler", {
         headers: authHeaders(),
       });
@@ -158,68 +298,78 @@
         return;
       }
 
+      const mobile = isMobileView();
+
       for (const x of rows) {
-        const tr = document.createElement("tr");
-
         const imgUrl = x.ref_sekil_url ? x.ref_sekil_url : (x.profil_sekil_url || "");
+        const yar = fmtDate(x.yaradildi);
 
-        tr.innerHTML = `
-          <td>${x.id}</td>
-          <td>${x.ad}</td>
-          <td>${x.soyad}</td>
-          <td>${x.vezife}</td>
-          <td><span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></td>
+        if (!mobile) {
+          // ------- Desktop row -------
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${x.id}</td>
+            <td>${x.ad}</td>
+            <td>${x.soyad}</td>
+            <td>${x.vezife}</td>
+            <td><span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></td>
+            <td>
+              <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
+            </td>
+            <td>
+              <input type="file" accept="image/*" id="f_${x.id}" />
+              <button class="btn2" type="button" id="u_${x.id}">Yadda saxla</button>
+              <div class="mini" id="st_${x.id}"></div>
+            </td>
+            <td>${yar}</td>
+          `;
+          tbody.appendChild(tr);
 
-          <td>
-            <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
-          </td>
+        } else {
+          // ------- Mobile card -------
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-top">
+              <div>
+                <div class="adsoyad">${x.ad} ${x.soyad}</div>
+                <div class="meta">ID: ${x.id} • Vəzifə: ${x.vezife} • <span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></div>
+              </div>
+              <div class="right-mini">${yar}</div>
+            </div>
 
-          <td>
-            <input type="file" accept="image/*" id="f_${x.id}" />
-            <button class="btn2" type="button" id="u_${x.id}">Yadda saxla</button>
-            <div class="mini" id="st_${x.id}"></div>
-          </td>
+            <div class="card-mid">
+              <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
+              <div class="upload">
+                <input type="file" accept="image/*" id="f_${x.id}" />
+                <button class="btn2" type="button" id="u_${x.id}">Referansı yadda saxla</button>
+                <div class="st" id="st_${x.id}"></div>
+              </div>
+            </div>
+          `;
+          cards.appendChild(card);
+        }
 
-          <td>${fmtDate(x.yaradildi)}</td>
-        `;
-
-        tbody.appendChild(tr);
-
-        const btn = tr.querySelector(`#u_${x.id}`);
-        const fileInput = tr.querySelector(`#f_${x.id}`);
-        const st = tr.querySelector(`#st_${x.id}`);
+        // ------- Common handlers (both views) -------
+        const btn = document.querySelector(`#u_${x.id}`);
+        const fileInput = document.querySelector(`#f_${x.id}`);
+        const st = document.querySelector(`#st_${x.id}`);
 
         btn.addEventListener("click", async () => {
           try {
-            st.textContent = "1) Klik oldu...";
-            console.log("CLICK upload", x.id);
-
-            if (!modelsReady) {
-              st.textContent = "Model hələ yüklənir...";
-              return;
-            }
-
-            if (!fileInput.files || !fileInput.files[0]) {
-              st.textContent = "Şəkil seçilməyib ❌";
-              console.log("NO FILE");
-              return;
-            }
+            st.textContent = "Şəkil yoxlanır...";
+            if (!modelsReady) { st.textContent = "Model hələ yüklənir..."; return; }
+            if (!fileInput.files || !fileInput.files[0]) { st.textContent = "Şəkil seçilməyib ❌"; return; }
 
             const file = fileInput.files[0];
-            console.log("FILE:", file.name, file.type, file.size);
-
-            st.textContent = "2) Şəkil oxunur...";
             btn.disabled = true;
 
-            // şəkli img elementinə yüklə
             const img = document.createElement("img");
             img.src = URL.createObjectURL(file);
             await waitImgLoad(img);
-            console.log("IMG LOADED", img.naturalWidth, img.naturalHeight);
 
-            st.textContent = "3) Üz axtarılır...";
+            st.textContent = "Üz axtarılır...";
 
-            // Üz tap (stabil)
             const det = await faceapi
               .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
               .withFaceLandmarks()
@@ -227,23 +377,17 @@
 
             if (!det) {
               st.textContent = "Üz tapılmadı ❌ başqa şəkil seç";
-              console.log("NO FACE DETECTED");
               btn.disabled = false;
               return;
             }
 
             const desc = Array.from(det.descriptor);
-            console.log("DESC OK len=", desc.length);
-
-            st.textContent = "4) Serverə göndərilir...";
+            st.textContent = "Serverə göndərilir...";
 
             const fd = new FormData();
             fd.append("ref", file);
             fd.append("descriptor", JSON.stringify(desc));
 
-            console.log("FETCH START...");
-
-            // ✅ AUTH əlavə olundu (upload)
             const resp = await fetch(`/api/admin/isciler/${x.id}/ref`, {
               method: "POST",
               headers: authHeaders(),
@@ -251,8 +395,6 @@
             });
 
             const raw = await resp.text();
-            console.log("RAW RESPONSE:", resp.status, raw);
-
             let data = {};
             try { data = JSON.parse(raw); } catch {}
 
@@ -265,8 +407,7 @@
             st.textContent = "Yadda saxlandı ✅";
             btn.disabled = false;
 
-            // ✅ referans şəkli dərhal göstər + yenilə (cache qır)
-            const imgCell = tr.querySelector(`#img_${x.id}`);
+            const imgCell = document.querySelector(`#img_${x.id}`);
             if (imgCell && data.ref_sekil_url) {
               imgCell.style.display = "";
               imgCell.src = data.ref_sekil_url + "?t=" + Date.now();
@@ -295,7 +436,6 @@
 
       if (!ad || !soyad || !vezife) return show("Ad/Soyad/Vəzifə boş ola bilməz", false);
 
-      // ✅ AUTH + JSON header
       const r = await fetch("/api/admin/isciler", {
         method: "POST",
         headers: authHeaders({ "Content-Type": "application/json" }),
@@ -318,6 +458,12 @@
       console.error(err);
       show("Xəta: " + err.message, false);
     }
+  });
+
+  // ekranda ölçü dəyişəndə yenilə (telefon ↔ pc)
+  window.addEventListener("resize", () => {
+    clearTimeout(window.__rz);
+    window.__rz = setTimeout(load, 250);
   });
 
   // ilk yükləmə

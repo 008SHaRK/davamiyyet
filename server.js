@@ -432,6 +432,8 @@ app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
 });
 
 app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
+  return res.json({ ok: true, versiya: "YENI_SERVER_ISLEYIR" });
+
   try {
     const { rows } = await pool.query(`
       SELECT 
@@ -785,3 +787,4 @@ app.get("/test-telegram-photo", async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server isledi, port:", PORT);
 });
+fappp

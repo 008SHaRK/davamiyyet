@@ -432,7 +432,7 @@ app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
 });
 
 app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
-  return res.json({ ok: true, versiya: "YENI_SERVER_ISLEYIR" });
+
 
   try {
     const { rows } = await pool.query(`

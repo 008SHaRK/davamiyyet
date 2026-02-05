@@ -5,157 +5,209 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Admin - İşçilər</title>
 
-  <style>
-    :root{
-      --bg:#f3f4f6;
-      --dark:#111827;
-      --dark2:#374151;
-      --border:#e5e7eb;
-      --muted:#6b7280;
-      --card:#ffffff;
-    }
+<style>
+:root{
+  --bg:#f3f4f6;
+  --dark:#111827;
+  --dark2:#374151;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --card:#ffffff;
+}
 
-    *{box-sizing:border-box}
-    body{font-family:Arial,sans-serif;margin:0;background:var(--bg)}
-    a{color:#fff;text-decoration:none}
+*{box-sizing:border-box}
 
-    header{
-      background:var(--dark);
-      color:#fff;
-      padding:14px 16px;
-      position:sticky;
-      top:0;
-      z-index:10;
-    }
+body{
+  font-family:Arial,sans-serif;
+  margin:0;
+  background:var(--bg);
+}
 
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+a{color:#fff;text-decoration:none}
 
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-    }
+/* ---------------- HEADER ---------------- */
 
-    .basliq-blok{display:flex;flex-direction:column;gap:4px}
-    .basliq-blok b{font-size:18px;line-height:1.1}
-    .basliq-blok .mini{font-size:12px;line-height:1.35;opacity:.85}
+header{
+  background:var(--dark);
+  color:#fff;
+  padding:14px 16px;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
 
-    .header-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .header-actions a{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 12px;
-      background:var(--dark2);
-      border-radius:12px;
-      font-size:14px;
-      line-height:1;
-      white-space:nowrap;
-    }
+.wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:16px;
+}
 
-    .box{
-      background:var(--card);
-      border-radius:14px;
-      padding:14px;
-      box-shadow:0 6px 20px rgba(0,0,0,.08)
-    }
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+}
 
-    .row{display:flex;gap:10px;flex-wrap:wrap}
+.basliq-blok{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
 
-    input,select,button{
-      padding:10px 12px;
-      font-size:14px;
-      border:1px solid #d1d5db;
-      border-radius:10px;
-      outline:none;
-    }
+.basliq-blok b{
+  font-size:18px;
+}
 
-    input,select{background:#fff}
-    button{cursor:pointer;background:var(--dark);color:#fff;border:none}
-    button:disabled{opacity:.6;cursor:not-allowed}
+.basliq-blok .mini{
+  font-size:12px;
+  opacity:.8;
+}
 
-    h3{margin:0 0 10px}
-    .mini{font-size:12px;color:var(--muted)}
-    .ok{color:#0a7b2e;font-weight:700}
-    .bad{color:#b00020;font-weight:700}
+.header-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
 
-    .tag{
-      padding:3px 8px;border-radius:999px;font-size:12px;
-      background:#eef2ff;display:inline-block
-    }
-    .img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--border)}
-    .btn2{background:var(--dark2)}
+.header-actions a{
+  padding:10px 12px;
+  background:var(--dark2);
+  border-radius:12px;
+  font-size:14px;
+}
 
-    /* Desktop table */
-    table{width:100%;border-collapse:collapse;margin-top:14px}
-    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:middle}
-    th{background:#f9fafb}
+/* ---------------- BOX ---------------- */
 
-    /* --- Form layout --- */
-    .form-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr 220px 140px;
-      gap:10px;
-      align-items:center;
-    }
-    .form-grid input, .form-grid select, .form-grid button{width:100%}
+.box{
+  background:var(--card);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  overflow-x:auto;
+}
 
-    /* --- Mobile improvements --- */
-    @media (max-width: 640px){
-      header{padding:12px 12px}
-      .wrap{padding:12px}
-      .top{flex-direction:column;align-items:flex-start}
-      .header-actions{width:100%}
-      .header-actions a{width:100%}
+h3{margin:0 0 10px}
 
-      .box{padding:12px}
+/* ---------------- FORM ---------------- */
 
-      .form-grid{
-        grid-template-columns: 1fr;
-      }
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 220px 140px;
+  gap:10px;
+  margin-bottom:10px;
+}
 
-      /* Hide table on mobile, show cards */
-      table{display:none}
-      .cards{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-      .card{
-        border:1px solid var(--border);
-        border-radius:14px;
-        padding:12px;
-        background:#fff;
-      }
-      .card-top{
-        display:flex;
-        justify-content:space-between;
-        gap:10px;
-        align-items:flex-start;
-      }
-      .adsoyad{font-weight:700;font-size:15px;line-height:1.2}
-      .meta{font-size:12px;color:var(--muted);margin-top:4px}
-      .right-mini{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+input,select,button{
+  padding:10px 12px;
+  font-size:14px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+}
 
-      .card-mid{
-        display:flex;
-        gap:10px;
-        align-items:center;
-        margin-top:10px;
-      }
-      .card-mid .img{width:64px;height:64px}
+button{
+  background:var(--dark);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
 
-      .upload{
-        flex:1;
-        display:flex;
-        flex-direction:column;
-        gap:8px;
-      }
-      .upload input{width:100%}
-      .upload button{width:100%}
-      .st{font-size:12px;color:var(--muted)}
-    }
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
 
-    /* Desktop: cards hidden */
-    .cards{display:none}
-  </style>
+/* ---------------- TABLE ---------------- */
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:14px;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+  text-align:left;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+
+th{
+  background:#f9fafb;
+}
+
+.tag{
+  padding:3px 8px;
+  border-radius:999px;
+  background:#eef2ff;
+  font-size:12px;
+}
+
+.img{
+  width:56px;
+  height:56px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#e5e7eb;
+}
+
+.btn2{
+  background:var(--dark2);
+}
+
+.mini{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.ok{color:#0a7b2e;font-weight:700}
+.bad{color:#b00020;font-weight:700}
+
+/* ---------------- MOBILE ---------------- */
+
+@media(max-width:640px){
+
+  .wrap{
+    padding:12px;
+  }
+
+  .top{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .header-actions{
+    width:100%;
+  }
+
+  .header-actions a{
+    width:100%;
+    text-align:center;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+@media (max-width:640px){
+  /* mobil üçün table daşmasın */
+  th:nth-child(6), td:nth-child(6),  /* Referans */
+  th:nth-child(8), td:nth-child(8)   /* Yaradıldı */
+  { display:none; }
+
+  /* daha sıx görünsün */
+  th,td{padding:8px;font-size:13px;white-space:normal}
+  .img{width:42px;height:42px}
+  input[type="file"]{max-width:150px}
+  .btn2{padding:9px 10px;font-size:13px}
+}
+
+</style>
+
 </head>
 
 <body>

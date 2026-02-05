@@ -1,3 +1,5 @@
+// server.js (FULL) - kopyala, server.js-i bununla əvəz et
+
 require("dotenv").config();
 
 const fs = require("fs");
@@ -18,26 +20,13 @@ app.use(cors());
 // JSON
 app.use(express.json({ limit: "10mb" }));
 
-// ✅ Qovluqları mütləq yarat (Render/Linux üçün)
+// ✅ Qovluqları yarat (Render/Linux üçün mütləq)
 fs.mkdirSync(path.join(__dirname, "uploads", "loglar"), { recursive: true });
 fs.mkdirSync(path.join(__dirname, "uploads", "ref"), { recursive: true });
 
 // Static (absolute path daha sağlamdır)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(path.join(__dirname, "public")));
-
-// ✅ Deploy yoxlama (version/ping)
-app.get("/__ver", (req, res) => {
-  res.json({
-    ok: true,
-    ver: "SERVER_FULL_2026-02-05",
-    hasToken: Boolean(process.env.TELEGRAM_BOT_TOKEN),
-    time: new Date().toISOString(),
-  });
-});
-app.get("/telegram/ping", (req, res) => {
-  res.send("telegram route OK ✅");
-});
 
 // ----------------------
 // Face helper
@@ -80,11 +69,7 @@ function requireAdmin(req, res, next) {
   const decoded = Buffer.from(base64, "base64").toString("utf8");
   const [user, pass] = decoded.split(":");
 
-  // ✅ env yoxdursa fallback (debug üçün)
-  const ADMIN_USER = process.env.ADMIN_USER || "admin";
-  const ADMIN_PASS = process.env.ADMIN_PASS || "12345";
-
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+  if (user === process.env.ADMIN_USER && pass === process.env.ADMIN_PASS) {
     return next();
   }
 
@@ -93,15 +78,15 @@ function requireAdmin(req, res, next) {
 }
 
 // ----------------------
-// Telegram helper (abonələrə göndər) - ✅ Faylı birbaşa upload edir
+// Telegram helper (abonələrə göndər) - ✅ şəkli fayl kimi upload edir
 // ----------------------
 async function sendTelegramMessage(text, filePath = null) {
   try {
     const token = process.env.TELEGRAM_BOT_TOKEN;
 
     if (!token) {
-      console.log("❌ Telegram token yoxdur (TELEGRAM_BOT_TOKEN .env / Render env yoxla)");
-      return { ok: false, reason: "NO_TOKEN" };
+      console.log("Telegram token yoxdur (.env yoxla)");
+      return;
     }
 
     // ✅ yalnız aktiv abonələr
@@ -111,17 +96,14 @@ async function sendTelegramMessage(text, filePath = null) {
 
     if (!subs.length) {
       console.log("⚠️ Aktiv telegram abonə yoxdur. /start edib nömrəni göndərməlidirlər.");
-      return { ok: false, reason: "NO_ACTIVE_SUBS", subs: 0 };
+      return;
     }
-
-    let sent = 0;
 
     for (const s of subs) {
       const chatId = s.chat_id;
 
       try {
-        if (filePath && fs.existsSync(filePath)) {
-          // ✅ Faylı birbaşa Telegram-a upload et
+        if (filePath) {
           const form = new FormData();
           form.append("chat_id", String(chatId));
           form.append("caption", text);
@@ -137,10 +119,8 @@ async function sendTelegramMessage(text, filePath = null) {
             text,
           });
         }
-
-        sent++;
       } catch (err2) {
-        // ✅ fallback: şəkil alınmasa, mətn göndər
+        // fallback: şəkil getməsə, mətn göndər
         try {
           await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
             chat_id: chatId,
@@ -152,12 +132,9 @@ async function sendTelegramMessage(text, filePath = null) {
         console.log("Telegram göndərmə xətası:", chatId, more);
       }
     }
-
-    return { ok: true, sent, subs: subs.length };
   } catch (err) {
     const more = err.response?.data ? JSON.stringify(err.response.data) : err.message;
     console.log("Telegram xətası:", more);
-    return { ok: false, reason: more };
   }
 }
 
@@ -166,9 +143,6 @@ async function sendTelegramMessage(text, filePath = null) {
 // ----------------------
 app.post("/telegram/webhook", async (req, res) => {
   try {
-    // DEBUG üçün görünsün:
-    // console.log("TELEGRAM UPDATE:", JSON.stringify(req.body));
-
     const update = req.body;
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) return res.json({ ok: true });
@@ -257,6 +231,231 @@ app.post("/telegram/webhook", async (req, res) => {
 });
 
 // ----------------------
+// Multer (log şəkil upload)
+// ----------------------
+const logStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads", "loglar")),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || ".jpg";
+    const name = `log_${Date.now()}_${Math.floor(Math.random() * 1e9)}${ext}`;
+    cb(null, name);
+  },
+});
+const uploadLog = multer({
+  storage: logStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// Referans şəkil upload
+const refStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads", "ref")),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || ".jpg";
+    cb(null, `ref_${Date.now()}_${Math.floor(Math.random() * 1e9)}${ext}`);
+  },
+});
+const uploadRef = multer({
+  storage: refStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// ----------------------
+// Pages
+// ----------------------
+app.get("/q/:mekan", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/admin", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "admin.html"));
+});
+
+app.get("/admin/isciler", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "isciler.html"));
+});
+
+app.get("/admin/telegram", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "telegram.html"));
+});
+
+app.get("/admin/maas", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "private", "maas.html"));
+});
+
+// ----------------------
+// Utility
+// ----------------------
+app.get("/", (req, res) => res.send("Davamiyyet backend isleyir ✅"));
+
+app.get("/test-db", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message, code: err?.code });
+  }
+});
+
+app.get("/api/test-telegram", async (req, res) => {
+  await sendTelegramMessage("✅ Test mesaj: serverdən Telegrama gəldi.");
+  res.json({ ok: true });
+});
+
+// ✅ test: serverdə fayl varsa telegrama şəkil kimi upload
+app.get("/test-telegram-photo", async (req, res) => {
+  try {
+    const testPath = path.join(__dirname, "uploads", "loglar", "log_test.jpg");
+    await sendTelegramMessage("Test şəkilli mesaj ✅", fs.existsSync(testPath) ? testPath : null);
+    res.json({ ok: true, used_file: fs.existsSync(testPath), testPath });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ----------------------
+// Admin APIs
+// ----------------------
+app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        l.id,
+        l.tarix_saat,
+        l.hadise,
+        l.mekan,
+        l.status,
+        l.kamera_sekil_url,
+        l.ad,
+        l.soyad,
+        l.vezife,
+        l.qeyd
+      FROM loglar l
+      ORDER BY l.tarix_saat DESC
+      LIMIT 50
+    `);
+
+    const fixed = rows.map((r) => ({
+      ...r,
+      kamera_sekil_url: r.kamera_sekil_url?.startsWith("/")
+        ? r.kamera_sekil_url
+        : "/" + r.kamera_sekil_url,
+    }));
+
+    res.json(fixed);
+  } catch (err) {
+    res.status(500).json({ error: err.message, code: err?.code });
+  }
+});
+
+// ✅ LOG sil
+app.delete("/api/admin/loglar/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "id yanlisdir" });
+
+    const { rowCount } = await pool.query("DELETE FROM loglar WHERE id=$1", [id]);
+    if (!rowCount) return res.status(404).json({ error: "log tapilmadi" });
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message, code: e?.code });
+  }
+});
+
+app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        id, ad, soyad, vezife, aktiv,
+        created_at AS yaradildi,
+        ref_sekil_url, profil_sekil_url
+      FROM isciler
+      ORDER BY id DESC
+      LIMIT 200
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error("API /api/admin/isciler ERROR FULL:", err);
+    return res.status(500).json({
+      error: err?.message || err?.code || err?.name || String(err),
+      code: err?.code,
+    });
+  }
+});
+
+app.post("/api/admin/isciler", requireAdmin, async (req, res) => {
+  try {
+    const { ad, soyad, vezife } = req.body;
+
+    if (!ad || !soyad || !vezife) {
+      return res.status(400).json({ error: "ad/soyad/vezife bos ola bilmez" });
+    }
+
+    const A = ad.trim();
+    const S = soyad.trim();
+    const V = vezife.trim();
+
+    const { rows: exists } = await pool.query(
+      `SELECT id FROM isciler
+       WHERE LOWER(ad)=LOWER($1) AND LOWER(soyad)=LOWER($2) AND LOWER(vezife)=LOWER($3)
+       LIMIT 1`,
+      [A, S, V]
+    );
+
+    if (exists.length) return res.status(409).json({ error: "Bu isci artiq var" });
+
+    const { rows: insRows } = await pool.query(
+      `INSERT INTO isciler (ad, soyad, vezife, aktiv)
+       VALUES ($1,$2,$3,TRUE)
+       RETURNING id`,
+      [A, S, V]
+    );
+
+    res.json({ ok: true, id: insRows[0].id });
+  } catch (err) {
+    res.status(500).json({ error: err.message, code: err?.code });
+  }
+});
+
+// ✅ İŞÇİ sil (tam) + onun loglarını da sil
+app.delete("/api/admin/isciler/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "id yanlisdir" });
+
+    await pool.query("DELETE FROM loglar WHERE isci_id=$1", [id]);
+
+    const { rowCount } = await pool.query("DELETE FROM isciler WHERE id=$1", [id]);
+    if (!rowCount) return res.status(404).json({ error: "isci tapilmadi" });
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message, code: e?.code });
+  }
+});
+
+app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "id yanlisdir" });
+
+    if (!req.file) return res.status(400).json({ error: "ref sekil gonderilmedi" });
+    if (!req.body.descriptor) return res.status(400).json({ error: "descriptor gonderilmedi" });
+
+    const ref_sekil_url = `/uploads/ref/${req.file.filename}`;
+
+    await pool.query(
+      `UPDATE isciler SET ref_sekil_url=$1, ref_descriptor=$2 WHERE id=$3`,
+      [ref_sekil_url, req.body.descriptor, id]
+    );
+
+    res.json({ ok: true, ref_sekil_url });
+  } catch (err) {
+    res.status(500).json({ error: err.message, code: err?.code });
+  }
+});
+
+// ----------------------
 // Telegram Admin APIs (icazeli telefonlar)
 // ----------------------
 app.get("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
@@ -329,7 +528,6 @@ app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
 app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
     let { mekan, vezife, gunluk_maas } = req.body || {};
-
     mekan = String(mekan || "").trim();
     vezife = String(vezife || "").trim();
     const g = Number(gunluk_maas);
@@ -356,6 +554,7 @@ app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   }
 });
 
+// ✅ Maaş qaydası sil (soft delete)
 app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -365,189 +564,6 @@ app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message, code: e?.code });
-  }
-});
-
-// ----------------------
-// Multer (log şəkil upload)
-// ----------------------
-const logStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads", "loglar")),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || ".jpg";
-    const name = `log_${Date.now()}_${Math.floor(Math.random() * 1e9)}${ext}`;
-    cb(null, name);
-  },
-});
-const uploadLog = multer({
-  storage: logStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
-
-// Referans şəkil upload
-const refStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "uploads", "ref")),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || ".jpg";
-    cb(null, `ref_${Date.now()}_${Math.floor(Math.random() * 1e9)}${ext}`);
-  },
-});
-const uploadRef = multer({
-  storage: refStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
-
-// ----------------------
-// Pages
-// ----------------------
-app.get("/q/:mekan", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-app.get("/admin", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "private", "admin.html"));
-});
-
-app.get("/admin/isciler", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "private", "isciler.html"));
-});
-
-app.get("/admin/telegram", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "private", "telegram.html"));
-});
-
-app.get("/admin/maas", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "private", "maas.html"));
-});
-
-// ----------------------
-// Utility
-// ----------------------
-app.get("/", (req, res) => res.send("Davamiyyet backend isleyir ✅"));
-
-app.get("/test-db", async (req, res) => {
-  try {
-    await pool.query("SELECT 1");
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ test telegram (abonə sayı göstərir)
-app.get("/api/test-telegram", async (req, res) => {
-  const result = await sendTelegramMessage("✅ Test mesaj: serverdən Telegrama gəldi.");
-  res.json({ ok: true, result });
-});
-
-// ----------------------
-// Admin APIs
-// ----------------------
-app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT 
-        l.id,
-        l.tarix_saat,
-        l.hadise,
-        l.mekan,
-        l.status,
-        l.kamera_sekil_url,
-        l.ad,
-        l.soyad,
-        l.vezife,
-        l.qeyd
-      FROM loglar l
-      ORDER BY l.tarix_saat DESC
-      LIMIT 50
-    `);
-
-    const fixed = rows.map((r) => ({
-      ...r,
-      kamera_sekil_url: r.kamera_sekil_url?.startsWith("/")
-        ? r.kamera_sekil_url
-        : "/" + r.kamera_sekil_url,
-    }));
-
-    res.json(fixed);
-  } catch (err) {
-    res.status(500).json({ error: err.message, code: err?.code });
-  }
-});
-
-app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT 
-        id, ad, soyad, vezife, aktiv,
-        created_at AS yaradildi,
-        ref_sekil_url, profil_sekil_url
-      FROM isciler
-      ORDER BY id DESC
-      LIMIT 200
-    `);
-    res.json(rows);
-  } catch (err) {
-    console.error("API /api/admin/isciler ERROR FULL:", err);
-    return res.status(500).json({
-      error: err?.message || err?.code || err?.name || String(err),
-      code: err?.code,
-    });
-  }
-});
-
-app.post("/api/admin/isciler", requireAdmin, async (req, res) => {
-  try {
-    const { ad, soyad, vezife } = req.body;
-
-    if (!ad || !soyad || !vezife) {
-      return res.status(400).json({ error: "ad/soyad/vezife bos ola bilmez" });
-    }
-
-    const A = ad.trim();
-    const S = soyad.trim();
-    const V = vezife.trim();
-
-    const { rows: exists } = await pool.query(
-      `SELECT id FROM isciler
-       WHERE LOWER(ad)=LOWER($1) AND LOWER(soyad)=LOWER($2) AND LOWER(vezife)=LOWER($3)
-       LIMIT 1`,
-      [A, S, V]
-    );
-
-    if (exists.length) return res.status(409).json({ error: "Bu isci artiq var" });
-
-    const { rows: insRows } = await pool.query(
-      `INSERT INTO isciler (ad, soyad, vezife, aktiv)
-       VALUES ($1,$2,$3,TRUE)
-       RETURNING id`,
-      [A, S, V]
-    );
-
-    res.json({ ok: true, id: insRows[0].id });
-  } catch (err) {
-    res.status(500).json({ error: err.message, code: err?.code });
-  }
-});
-
-app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    if (!id) return res.status(400).json({ error: "id yanlisdir" });
-
-    if (!req.file) return res.status(400).json({ error: "ref sekil gonderilmedi" });
-    if (!req.body.descriptor) return res.status(400).json({ error: "descriptor gonderilmedi" });
-
-    const ref_sekil_url = `/uploads/ref/${req.file.filename}`;
-
-    await pool.query(
-      `UPDATE isciler SET ref_sekil_url=$1, ref_descriptor=$2 WHERE id=$3`,
-      [ref_sekil_url, req.body.descriptor, id]
-    );
-
-    res.json({ ok: true, ref_sekil_url });
-  } catch (err) {
-    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -799,7 +815,7 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 📝 Qeyd: ${qeyd || "-"}
 ⏰ ${vaxt}`;
 
-    // ✅ URL yox, faylın özünü göndəririk
+    // ✅ şəkli URL yox, fayl kimi göndəririk
     const filePath = req.file.path;
     await sendTelegramMessage(mesajText, filePath);
 
@@ -813,17 +829,6 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 // Listen
 // ----------------------
 const PORT = process.env.PORT || 3000;
-
-// ✅ test: şəkil faylı varsa birbaşa Telegram-a upload et
-app.get("/test-telegram-photo", async (req, res) => {
-  try {
-    const testPath = path.join(__dirname, "uploads", "loglar", "log_test.jpg");
-    const result = await sendTelegramMessage("Test şəkilli mesaj ✅", fs.existsSync(testPath) ? testPath : null);
-    res.json({ ok: true, used_file: fs.existsSync(testPath), testPath, result });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
-  }
-});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server isledi, port:", PORT);

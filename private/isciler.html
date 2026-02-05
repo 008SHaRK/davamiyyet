@@ -5,209 +5,168 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Admin - İşçilər</title>
 
-<style>
-:root{
-  --bg:#f3f4f6;
-  --dark:#111827;
-  --dark2:#374151;
-  --border:#e5e7eb;
-  --muted:#6b7280;
-  --card:#ffffff;
-}
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
-*{box-sizing:border-box}
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --dark:#111827;
+      --dark2:#374151;
+      --border:#e5e7eb;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --danger:#b00020;
+      --ok:#0a7b2e;
+    }
 
-body{
-  font-family:Arial,sans-serif;
-  margin:0;
-  background:var(--bg);
-}
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;margin:0;background:var(--bg);color:#111827}
+    a{color:#fff;text-decoration:none}
 
-a{color:#fff;text-decoration:none}
+    /* HEADER */
+    header{
+      background:var(--dark);
+      color:#fff;
+      padding:14px 16px;
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
 
-/* ---------------- HEADER ---------------- */
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px;
+    }
 
-header{
-  background:var(--dark);
-  color:#fff;
-  padding:14px 16px;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
 
-.wrap{
-  max-width:1100px;
-  margin:0 auto;
-  padding:16px;
-}
+    .basliq-blok{display:flex;flex-direction:column;gap:4px}
+    .basliq-blok b{font-size:18px;line-height:1.1}
+    .basliq-blok .mini{font-size:12px;opacity:.85;line-height:1.35}
 
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  flex-wrap:wrap;
-}
+    .header-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .header-actions a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      background:var(--dark2);
+      border-radius:12px;
+      font-size:14px;
+      line-height:1;
+      white-space:nowrap;
+    }
 
-.basliq-blok{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
+    /* BOX */
+    .box{
+      background:var(--card);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:0 6px 20px rgba(0,0,0,.08);
+    }
 
-.basliq-blok b{
-  font-size:18px;
-}
+    h3{margin:0 0 10px}
+    .mini{font-size:12px;color:var(--muted)}
+    .ok{color:var(--ok);font-weight:700}
+    .bad{color:var(--danger);font-weight:700}
 
-.basliq-blok .mini{
-  font-size:12px;
-  opacity:.8;
-}
+    /* FORM */
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr 220px 140px;
+      gap:10px;
+      align-items:center;
+    }
 
-.header-actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
+    input,select,button{
+      padding:10px 12px;
+      font-size:14px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      outline:none;
+    }
 
-.header-actions a{
-  padding:10px 12px;
-  background:var(--dark2);
-  border-radius:12px;
-  font-size:14px;
-}
+    input,select{background:#fff}
+    button{cursor:pointer;background:var(--dark);color:#fff;border:none}
+    button:disabled{opacity:.6;cursor:not-allowed}
 
-/* ---------------- BOX ---------------- */
+    /* TABLE SCROLL (mobil-də sağa daşmasın) */
+    .table-wrap{
+      margin-top:14px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:auto;              /* scroll burada olacaq */
+      background:#fff;
+    }
 
-.box{
-  background:var(--card);
-  border-radius:14px;
-  padding:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);
-  overflow-x:auto;
-}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:980px;            /* mobil-də sütunlar sıxılmasın */
+    }
 
-h3{margin:0 0 10px}
+    th,td{
+      padding:10px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      font-size:14px;
+      vertical-align:middle;
+      white-space:nowrap;
+    }
 
-/* ---------------- FORM ---------------- */
+    th{background:#f9fafb;position:sticky;top:0}
 
-.form-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr 220px 140px;
-  gap:10px;
-  margin-bottom:10px;
-}
+    .tag{
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:12px;
+      background:#eef2ff;
+      display:inline-block;
+    }
 
-input,select,button{
-  padding:10px 12px;
-  font-size:14px;
-  border-radius:10px;
-  border:1px solid #d1d5db;
-}
+    .img{
+      width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--border);
+      display:block;
+    }
 
-button{
-  background:var(--dark);
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
+    .btn2{background:var(--dark2)}
+    .delBtn{
+      background:var(--danger);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:9px 12px;
+      font-weight:700;
+      cursor:pointer;
+    }
 
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
+    /* Mobile */
+    @media (max-width:640px){
+      header{padding:12px 12px}
+      .wrap{padding:12px}
+      .top{flex-direction:column;align-items:flex-start}
+      .header-actions{width:100%}
+      .header-actions a{width:100%}
 
-/* ---------------- TABLE ---------------- */
+      .box{padding:12px}
+      .form-grid{grid-template-columns:1fr}
+    }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:14px;
-}
-
-th,td{
-  padding:10px;
-  border-bottom:1px solid var(--border);
-  font-size:14px;
-  text-align:left;
-  vertical-align:middle;
-  white-space:nowrap;
-}
-
-th{
-  background:#f9fafb;
-}
-
-.tag{
-  padding:3px 8px;
-  border-radius:999px;
-  background:#eef2ff;
-  font-size:12px;
-}
-
-.img{
-  width:56px;
-  height:56px;
-  border-radius:10px;
-  object-fit:cover;
-  background:#e5e7eb;
-}
-
-.btn2{
-  background:var(--dark2);
-}
-
-.mini{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.ok{color:#0a7b2e;font-weight:700}
-.bad{color:#b00020;font-weight:700}
-
-/* ---------------- MOBILE ---------------- */
-
-@media(max-width:640px){
-
-  .wrap{
-    padding:12px;
-  }
-
-  .top{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .header-actions{
-    width:100%;
-  }
-
-  .header-actions a{
-    width:100%;
-    text-align:center;
-  }
-
-  .form-grid{
-    grid-template-columns:1fr;
-  }
-
-}
-@media (max-width:640px){
-  /* mobil üçün table daşmasın */
-  th:nth-child(6), td:nth-child(6),  /* Referans */
-  th:nth-child(8), td:nth-child(8)   /* Yaradıldı */
-  { display:none; }
-
-  /* daha sıx görünsün */
-  th,td{padding:8px;font-size:13px;white-space:normal}
-  .img{width:42px;height:42px}
-  input[type="file"]{max-width:150px}
-  .btn2{padding:9px 10px;font-size:13px}
-}
-
-</style>
-
+    /* çox balaca ekranlarda bir az sıxlıq */
+    @media (max-width:420px){
+      th,td{padding:8px;font-size:13px}
+      .img{width:44px;height:44px}
+      input[type="file"]{max-width:160px}
+    }
+  </style>
 </head>
 
 <body>
@@ -219,6 +178,8 @@ th{
     </div>
     <div class="header-actions">
       <a href="/admin">← Loglar</a>
+      <a href="/admin/maas">Maaş Tarifləri</a>
+      <a href="/admin/telegram">Telegram</a>
     </div>
   </div>
 </header>
@@ -245,26 +206,26 @@ th{
 
     <h3 style="margin:16px 0 6px">Siyahı</h3>
     <div class="mini">Qaydası: hər işçiyə 1 referans şəkil yüklə. Sonra QR girişdə üz uyğunluğu yoxlanacaq.</div>
+    <div class="mini" style="margin-top:6px">Mobil-də sağa sürüşdürmək üçün: cədvəli sola-sağa sürüşdür.</div>
 
-    <!-- Desktop table -->
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Ad</th>
-          <th>Soyad</th>
-          <th>Vəzifə</th>
-          <th>Aktiv</th>
-          <th>Referans</th>
-          <th>Referans yüklə</th>
-          <th>Yaradıldı</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <!-- Mobile cards -->
-    <div id="cards" class="cards"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Ad</th>
+            <th>Soyad</th>
+            <th>Vəzifə</th>
+            <th>Aktiv</th>
+            <th>Referans</th>
+            <th>Referans yüklə</th>
+            <th>Yaradıldı</th>
+            <th>Sil</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -273,7 +234,6 @@ th{
 
 <script>
   const tbody = document.getElementById("tbody");
-  const cards = document.getElementById("cards");
   const msg = document.getElementById("msg");
 
   function show(text, ok = true) {
@@ -323,15 +283,10 @@ th{
     });
   });
 
-  function isMobileView(){
-    return window.matchMedia("(max-width: 640px)").matches;
-  }
-
   // ---------- API ----------
   async function load() {
     try {
       tbody.innerHTML = "";
-      cards.innerHTML = "";
 
       const r = await fetch("/api/admin/isciler", {
         headers: authHeaders(),
@@ -350,63 +305,44 @@ th{
         return;
       }
 
-      const mobile = isMobileView();
-
       for (const x of rows) {
+        const tr = document.createElement("tr");
+
         const imgUrl = x.ref_sekil_url ? x.ref_sekil_url : (x.profil_sekil_url || "");
         const yar = fmtDate(x.yaradildi);
 
-        if (!mobile) {
-          // ------- Desktop row -------
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${x.id}</td>
-            <td>${x.ad}</td>
-            <td>${x.soyad}</td>
-            <td>${x.vezife}</td>
-            <td><span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></td>
-            <td>
-              <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
-            </td>
-            <td>
-              <input type="file" accept="image/*" id="f_${x.id}" />
-              <button class="btn2" type="button" id="u_${x.id}">Yadda saxla</button>
-              <div class="mini" id="st_${x.id}"></div>
-            </td>
-            <td>${yar}</td>
-          `;
-          tbody.appendChild(tr);
+        tr.innerHTML = `
+          <td>${x.id}</td>
+          <td>${x.ad}</td>
+          <td>${x.soyad}</td>
+          <td>${x.vezife}</td>
+          <td><span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></td>
 
-        } else {
-          // ------- Mobile card -------
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `
-            <div class="card-top">
-              <div>
-                <div class="adsoyad">${x.ad} ${x.soyad}</div>
-                <div class="meta">ID: ${x.id} • Vəzifə: ${x.vezife} • <span class="tag">${x.aktiv ? "aktiv" : "deaktiv"}</span></div>
-              </div>
-              <div class="right-mini">${yar}</div>
-            </div>
+          <td>
+            <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
+          </td>
 
-            <div class="card-mid">
-              <img class="img" id="img_${x.id}" src="${imgUrl || ""}" alt="ref" style="${imgUrl ? "" : "display:none"}">
-              <div class="upload">
-                <input type="file" accept="image/*" id="f_${x.id}" />
-                <button class="btn2" type="button" id="u_${x.id}">Referansı yadda saxla</button>
-                <div class="st" id="st_${x.id}"></div>
-              </div>
-            </div>
-          `;
-          cards.appendChild(card);
-        }
+          <td>
+            <input type="file" accept="image/*" id="f_${x.id}" />
+            <button class="btn2" type="button" id="u_${x.id}">Yadda saxla</button>
+            <div class="mini" id="st_${x.id}"></div>
+          </td>
 
-        // ------- Common handlers (both views) -------
-        const btn = document.querySelector(`#u_${x.id}`);
-        const fileInput = document.querySelector(`#f_${x.id}`);
-        const st = document.querySelector(`#st_${x.id}`);
+          <td>${yar}</td>
 
+          <td>
+            <button class="delBtn" type="button" id="del_${x.id}">Sil</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+
+        const btn = tr.querySelector(`#u_${x.id}`);
+        const fileInput = tr.querySelector(`#f_${x.id}`);
+        const st = tr.querySelector(`#st_${x.id}`);
+        const delBtn = tr.querySelector(`#del_${x.id}`);
+
+        // ---- Upload ref ----
         btn.addEventListener("click", async () => {
           try {
             st.textContent = "Şəkil yoxlanır...";
@@ -459,7 +395,7 @@ th{
             st.textContent = "Yadda saxlandı ✅";
             btn.disabled = false;
 
-            const imgCell = document.querySelector(`#img_${x.id}`);
+            const imgCell = tr.querySelector(`#img_${x.id}`);
             if (imgCell && data.ref_sekil_url) {
               imgCell.style.display = "";
               imgCell.src = data.ref_sekil_url + "?t=" + Date.now();
@@ -472,6 +408,32 @@ th{
             btn.disabled = false;
           }
         });
+
+        // ---- Delete worker ----
+        delBtn.addEventListener("click", async () => {
+          const ok = confirm(`${x.ad} ${x.soyad} silinsin? (loglar da silinəcək)`);
+          if (!ok) return;
+
+          delBtn.disabled = true;
+
+          const resp = await fetch(`/api/admin/isciler/${x.id}`, {
+            method: "DELETE",
+            headers: authHeaders(),
+          });
+
+          const raw = await resp.text();
+          let data = {};
+          try { data = JSON.parse(raw); } catch {}
+
+          if (!resp.ok) {
+            show(data.error || raw || "Xəta", false);
+            delBtn.disabled = false;
+            return;
+          }
+
+          show("Silindi ✅", true);
+          load();
+        });
       }
     } catch (err) {
       console.error(err);
@@ -479,7 +441,7 @@ th{
     }
   }
 
-  // işçi əlavə et
+  // Add worker
   document.getElementById("add").addEventListener("click", async () => {
     try {
       const ad = document.getElementById("ad").value.trim();
@@ -512,13 +474,6 @@ th{
     }
   });
 
-  // ekranda ölçü dəyişəndə yenilə (telefon ↔ pc)
-  window.addEventListener("resize", () => {
-    clearTimeout(window.__rz);
-    window.__rz = setTimeout(load, 250);
-  });
-
-  // ilk yükləmə
   load();
 </script>
 

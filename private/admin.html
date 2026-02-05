@@ -158,7 +158,7 @@
       padding:12px;
       display:flex;
       flex-direction:column;
-      gap:4px;
+      gap:6px;
     }
 
     .name{
@@ -201,6 +201,28 @@
       background:#f9fafb;
       border:1px dashed #d1d5db;
       font-size:13px;
+    }
+
+    /* ---------------- DELETE BUTTON ---------------- */
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+    .delBtn{
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:none;
+      cursor:pointer;
+      background:#b00020;
+      color:#fff;
+      font-weight:700;
+      font-size:14px;
+    }
+    .delBtn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
     }
 
     /* ---------------- MOBILE OPTIMIZATION ---------------- */
@@ -252,6 +274,15 @@
   const statusSel = document.getElementById("status");
   const btn = document.getElementById("btn");
 
+  // ✅ Basic Auth (Admin) - səndə necədirsə elə saxladım
+  const ADMIN_USER = "admin";
+  const ADMIN_PASS = "12345";
+  const ADMIN_TOKEN = btoa(`${ADMIN_USER}:${ADMIN_PASS}`);
+
+  function authHeaders(extra = {}) {
+    return { ...extra, Authorization: `Basic ${ADMIN_TOKEN}` };
+  }
+
   function tagClass(st){
     if(st === "OK") return "tag ok";
     if(st === "REJECT") return "tag rej";
@@ -264,11 +295,48 @@
     return d.toLocaleString();
   }
 
+  async function silLog(id, btnEl){
+    if(!confirm("Bu log silinsin?")) return;
+
+    try{
+      btnEl.disabled = true;
+      btnEl.textContent = "Silinir...";
+
+      const resp = await fetch("/api/admin/loglar/" + id, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+
+      const raw = await resp.text();
+      let data = {};
+      try { data = JSON.parse(raw); } catch {}
+
+      if(!resp.ok){
+        alert("Xəta: " + (data.error || raw || resp.status));
+        btnEl.disabled = false;
+        btnEl.textContent = "Sil";
+        return;
+      }
+
+      // yenilə
+      load();
+    }catch(e){
+      alert("Xəta: " + e.message);
+      btnEl.disabled = false;
+      btnEl.textContent = "Sil";
+    }
+  }
+
   async function load(){
     grid.innerHTML = "";
     info.textContent = "Yüklənir...";
 
-    const r = await fetch("/api/admin/loglar");
+    const r = await fetch("/api/admin/loglar", { headers: authHeaders() });
+    if(!r.ok){
+      info.textContent = "Yüklənmədi: " + r.status;
+      return;
+    }
+
     const rows = await r.json();
 
     const text = q.value.trim().toLowerCase();
@@ -298,10 +366,19 @@
           <p class="meta"><b>Tarix:</b> ${fmtDate(x.tarix_saat)}</p>
           <span class="${tagClass(x.status)}">${x.status}</span>
           ${x.qeyd ? `<div class="note"><b>Qeyd:</b> ${x.qeyd}</div>` : ``}
+
+          <div class="actions">
+            <button class="delBtn" data-id="${x.id}">Sil</button>
+          </div>
         </div>
       `;
       grid.appendChild(card);
     }
+
+    // sil düymələri
+    grid.querySelectorAll(".delBtn").forEach(b=>{
+      b.addEventListener("click", () => silLog(b.getAttribute("data-id"), b));
+    });
   }
 
   btn.addEventListener("click", load);

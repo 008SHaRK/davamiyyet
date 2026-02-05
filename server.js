@@ -26,6 +26,19 @@ fs.mkdirSync(path.join(__dirname, "uploads", "ref"), { recursive: true });
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(path.join(__dirname, "public")));
 
+// ✅ Deploy yoxlama (version/ping)
+app.get("/__ver", (req, res) => {
+  res.json({
+    ok: true,
+    ver: "SERVER_FULL_2026-02-05",
+    hasToken: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+    time: new Date().toISOString(),
+  });
+});
+app.get("/telegram/ping", (req, res) => {
+  res.send("telegram route OK ✅");
+});
+
 // ----------------------
 // Face helper
 // ----------------------
@@ -67,7 +80,11 @@ function requireAdmin(req, res, next) {
   const decoded = Buffer.from(base64, "base64").toString("utf8");
   const [user, pass] = decoded.split(":");
 
-  if (user === process.env.ADMIN_USER && pass === process.env.ADMIN_PASS) {
+  // ✅ env yoxdursa fallback (debug üçün)
+  const ADMIN_USER = process.env.ADMIN_USER || "admin";
+  const ADMIN_PASS = process.env.ADMIN_PASS || "12345";
+
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
     return next();
   }
 
@@ -83,8 +100,8 @@ async function sendTelegramMessage(text, filePath = null) {
     const token = process.env.TELEGRAM_BOT_TOKEN;
 
     if (!token) {
-      console.log("Telegram token yoxdur (.env yoxla)");
-      return;
+      console.log("❌ Telegram token yoxdur (TELEGRAM_BOT_TOKEN .env / Render env yoxla)");
+      return { ok: false, reason: "NO_TOKEN" };
     }
 
     // ✅ yalnız aktiv abonələr
@@ -93,15 +110,17 @@ async function sendTelegramMessage(text, filePath = null) {
     );
 
     if (!subs.length) {
-      console.log("Aktiv telegram abonə yoxdur. /start edib nömrəni göndərməlidirlər.");
-      return;
+      console.log("⚠️ Aktiv telegram abonə yoxdur. /start edib nömrəni göndərməlidirlər.");
+      return { ok: false, reason: "NO_ACTIVE_SUBS", subs: 0 };
     }
+
+    let sent = 0;
 
     for (const s of subs) {
       const chatId = s.chat_id;
 
       try {
-        if (filePath) {
+        if (filePath && fs.existsSync(filePath)) {
           // ✅ Faylı birbaşa Telegram-a upload et
           const form = new FormData();
           form.append("chat_id", String(chatId));
@@ -118,6 +137,8 @@ async function sendTelegramMessage(text, filePath = null) {
             text,
           });
         }
+
+        sent++;
       } catch (err2) {
         // ✅ fallback: şəkil alınmasa, mətn göndər
         try {
@@ -131,9 +152,12 @@ async function sendTelegramMessage(text, filePath = null) {
         console.log("Telegram göndərmə xətası:", chatId, more);
       }
     }
+
+    return { ok: true, sent, subs: subs.length };
   } catch (err) {
     const more = err.response?.data ? JSON.stringify(err.response.data) : err.message;
     console.log("Telegram xətası:", more);
+    return { ok: false, reason: more };
   }
 }
 
@@ -142,6 +166,9 @@ async function sendTelegramMessage(text, filePath = null) {
 // ----------------------
 app.post("/telegram/webhook", async (req, res) => {
   try {
+    // DEBUG üçün görünsün:
+    // console.log("TELEGRAM UPDATE:", JSON.stringify(req.body));
+
     const update = req.body;
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) return res.json({ ok: true });
@@ -299,7 +326,6 @@ app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   }
 });
 
-// ✅ UNIQUE(mekan, vezife) olmalıdır
 app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
     let { mekan, vezife, gunluk_maas } = req.body || {};
@@ -408,9 +434,10 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
+// ✅ test telegram (abonə sayı göstərir)
 app.get("/api/test-telegram", async (req, res) => {
-  await sendTelegramMessage("✅ Test mesaj: serverdən Telegrama gəldi.");
-  res.json({ ok: true });
+  const result = await sendTelegramMessage("✅ Test mesaj: serverdən Telegrama gəldi.");
+  res.json({ ok: true, result });
 });
 
 // ----------------------
@@ -791,8 +818,8 @@ const PORT = process.env.PORT || 3000;
 app.get("/test-telegram-photo", async (req, res) => {
   try {
     const testPath = path.join(__dirname, "uploads", "loglar", "log_test.jpg");
-    await sendTelegramMessage("Test şəkilli mesaj ✅", fs.existsSync(testPath) ? testPath : null);
-    res.json({ ok: true, used_file: fs.existsSync(testPath), testPath });
+    const result = await sendTelegramMessage("Test şəkilli mesaj ✅", fs.existsSync(testPath) ? testPath : null);
+    res.json({ ok: true, used_file: fs.existsSync(testPath), testPath, result });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

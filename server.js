@@ -174,7 +174,6 @@ app.post("/telegram/webhook", async (req, res) => {
           text: "⛔ Bu nömrə icazəli siyahıda deyil. Admin ilə əlaqə saxla.",
         });
 
-        // chat_id unikaldırsa ON CONFLICT işləyəcək
         await pool.query(
           `INSERT INTO telegram_abuneler (chat_id, telefon, aktiv)
            VALUES ($1,$2,FALSE)
@@ -216,15 +215,16 @@ app.post("/telegram/webhook", async (req, res) => {
 // ----------------------
 app.get("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
   try {
+    // ✅ yaradildi sütunu problem verirsə çıxardıq
     const { rows } = await pool.query(`
-      SELECT id, telefon, yaradildi
+      SELECT id, telefon
       FROM telegram_icazeli
       ORDER BY id DESC
       LIMIT 500
     `);
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -248,7 +248,7 @@ app.post("/api/admin/telegram/icazeli", requireAdmin, async (req, res) => {
 
     res.json({ ok: true, id: insRows[0].id, telefon });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -260,7 +260,7 @@ app.delete("/api/admin/telegram/icazeli/:id", requireAdmin, async (req, res) => 
     await pool.query(`DELETE FROM telegram_icazeli WHERE id=$1`, [id]);
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -269,19 +269,20 @@ app.delete("/api/admin/telegram/icazeli/:id", requireAdmin, async (req, res) => 
 // ----------------------
 app.get("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
+    // ✅ yaradildi sütunu problem verirsə çıxardıq
     const { rows } = await pool.query(`
-      SELECT id, mekan, vezife, gunluk_maas, aktiv, yaradildi
-      FROM maas_qaydalar
+      SELECT id, mekan, vezife, gunluk_maas, aktiv
+      FROM maas_qaydalari
       WHERE aktiv=TRUE
       ORDER BY mekan, vezife
     `);
     res.json(rows);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, code: e?.code });
   }
 });
 
-// ✅ UNIQUE(mekan, vezife) olmalıdır (aşağıda SQL var)
+// ✅ UNIQUE(mekan, vezife) olmalıdır
 app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
   try {
     let { mekan, vezife, gunluk_maas } = req.body || {};
@@ -298,7 +299,7 @@ app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO maas_qaydalar (mekan, vezife, gunluk_maas, aktiv)
+      INSERT INTO maas_qaydalari (mekan, vezife, gunluk_maas, aktiv)
       VALUES ($1,$2,$3,TRUE)
       ON CONFLICT (mekan, vezife)
       DO UPDATE SET gunluk_maas=EXCLUDED.gunluk_maas, aktiv=TRUE
@@ -308,7 +309,7 @@ app.post("/api/admin/maas/qaydalar", requireAdmin, async (req, res) => {
 
     res.json({ ok: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, code: e?.code });
   }
 });
 
@@ -317,10 +318,10 @@ app.delete("/api/admin/maas/qaydalar/:id", requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ error: "id yanlisdir" });
 
-    await pool.query(`UPDATE maas_qaydalar SET aktiv=FALSE WHERE id=$1`, [id]);
+    await pool.query(`UPDATE maas_qaydalari SET aktiv=FALSE WHERE id=$1`, [id]);
     res.json({ ok: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, code: e?.code });
   }
 });
 
@@ -426,14 +427,17 @@ app.get("/api/admin/loglar", requireAdmin, async (req, res) => {
 
     res.json(fixed);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
 app.get("/api/admin/isciler", requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id, ad, soyad, vezife, aktiv, yaradildi, ref_sekil_url, profil_sekil_url
+      SELECT 
+        id, ad, soyad, vezife, aktiv,
+        created_at AS yaradildi,
+        ref_sekil_url, profil_sekil_url
       FROM isciler
       ORDER BY id DESC
       LIMIT 200
@@ -478,7 +482,7 @@ app.post("/api/admin/isciler", requireAdmin, async (req, res) => {
 
     res.json({ ok: true, id: insRows[0].id });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -499,7 +503,7 @@ app.post("/api/admin/isciler/:id/ref", requireAdmin, uploadRef.single("ref"), as
 
     res.json({ ok: true, ref_sekil_url });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -539,7 +543,7 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
 
     const { rows: rules } = await pool.query(`
       SELECT mekan, vezife, gunluk_maas
-      FROM maas_qaydalar
+      FROM maas_qaydalari
       WHERE aktiv=TRUE
     `);
 
@@ -628,7 +632,7 @@ app.get("/api/admin/maas.xlsx", requireAdmin, async (req, res) => {
     await wb.xlsx.write(res);
     res.end();
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 
@@ -758,7 +762,7 @@ app.post("/api/qeydiyyat", uploadLog.single("sekil"), async (req, res) => {
 
     return res.json({ ok: true, log_id, status, hadise, kamera_sekil_url, qeyd });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message, code: err?.code });
   }
 });
 

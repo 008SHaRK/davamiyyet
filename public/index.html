@@ -5,80 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Davamiyyət</title>
 
- 
   <style>
     :root{
-      --bg:#0b1220;
-      --card:#111a2e;
-      --card2:#0f172a;
+      --bg:#070A12;
+      --bg2:#0B1020;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --line: rgba(255,255,255,.12);
       --txt:#e5e7eb;
       --muted:#9ca3af;
-      --line:rgba(255,255,255,.10);
-      --brand:#22c55e;
-      --danger:#ef4444;
+      --brand:#7c3aed;
+      --brand2:#06b6d4;
+      --ok:#22c55e;
+      --bad:#ef4444;
       --warn:#f59e0b;
-      --btn:#2563eb;
-      --btn2:#334155;
-      --shadow: 0 12px 34px rgba(0,0,0,.35);
-      --r:16px;
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --r:18px;
     }
 
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: Arial, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 20% -10%, rgba(37,99,235,.35), transparent 60%),
-        radial-gradient(1000px 500px at 90% 10%, rgba(34,197,94,.25), transparent 60%),
-        var(--bg);
       color:var(--txt);
       padding:16px;
+      background:
+        radial-gradient(1100px 650px at 15% -5%, rgba(124,58,237,.40), transparent 60%),
+        radial-gradient(1000px 600px at 95% 10%, rgba(6,182,212,.22), transparent 62%),
+        radial-gradient(900px 520px at 60% 110%, rgba(34,197,94,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
     }
 
     .wrap{
-      max-width:560px;
+      max-width:620px;
       margin:0 auto;
       display:flex;
       flex-direction:column;
       gap:12px;
     }
 
+    /* Topbar */
     .topbar{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
-      padding:14px 14px;
+      padding:14px;
       border:1px solid var(--line);
-      background:rgba(17,26,46,.65);
+      background:var(--card);
       border-radius:var(--r);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
     }
     .brand{
       display:flex;
       flex-direction:column;
-      gap:3px;
+      gap:6px;
+      min-width:220px;
+    }
+    .brandRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,58,237,.9), rgba(6,182,212,.85));
+      box-shadow: 0 12px 28px rgba(124,58,237,.25);
+      border:1px solid rgba(255,255,255,.18);
     }
     .brand b{font-size:18px; letter-spacing:.2px}
-    .brand span{font-size:12px; color:var(--muted)}
+    .brand span{font-size:12px; color:var(--muted); line-height:1.35}
 
     .pill{
-      padding:8px 10px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:9px 12px;
       border:1px solid var(--line);
       border-radius:999px;
-      background:rgba(0,0,0,.20);
+      background: rgba(0,0,0,.18);
       font-size:12px;
       color:var(--txt);
       white-space:nowrap;
     }
+    .pill b{font-size:12px}
 
+    /* Cards */
     .card{
       border:1px solid var(--line);
-      background:rgba(17,26,46,.65);
+      background:var(--card);
       border-radius:var(--r);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       overflow:hidden;
     }
     .card .p{ padding:14px; }
@@ -92,7 +111,7 @@
     label{
       display:block;
       font-size:13px;
-      font-weight:700;
+      font-weight:800;
       margin:0 0 6px;
       color:var(--txt);
     }
@@ -100,47 +119,32 @@
     input, select{
       width:100%;
       padding:12px 12px;
-      border-radius:12px;
+      border-radius:14px;
       border:1px solid var(--line);
-      background:rgba(15,23,42,.65);
+      background: rgba(0,0,0,.18);
       color:var(--txt);
       font-size:16px;
       outline:none;
     }
-    select{
-  width: 100%;
-  max-width: 100%;
-  display: block;
-  box-sizing: border-box;
-
-  padding: 12px 40px 12px 12px; /* sağda ox üçün yer */
-  font-size: 16px; /* iPhone zoom olmasın */
-  line-height: 1.2;
-
-  border: 1px solid #ccc;
-  border-radius: 12px;
-
-  background:rgba(15,23,42,.65);
-      color:var(--txt);
-
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 18px;
-}
 
     input::placeholder{color:rgba(229,231,235,.55)}
     input:focus, select:focus{
-      border-color: rgba(37,99,235,.65);
-      box-shadow: 0 0 0 4px rgba(37,99,235,.15);
+      border-color: rgba(124,58,237,.55);
+      box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+    }
+
+    /* Premium select arrow */
+    select{
+      padding-right:42px;
+      appearance:none;
+      -webkit-appearance:none;
+      -moz-appearance:none;
+      background-image:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat:no-repeat,no-repeat;
+      background-position:left top, right 14px center;
+      background-size:auto,18px;
     }
 
     .hint{
@@ -150,6 +154,7 @@
       line-height:1.35;
     }
 
+    /* Camera */
     .camBox{
       padding:12px;
       display:flex;
@@ -157,14 +162,49 @@
       gap:10px;
     }
 
+    .frame{
+      position:relative;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:#000;
+    }
+
     video, img{
       width:100%;
-      border-radius:14px;
+      display:block;
       background:#000;
-      border:1px solid var(--line);
     }
-    video{ aspect-ratio: 3/4; object-fit:cover; }
+    video{
+      aspect-ratio: 3/4;
+      object-fit:cover;
+    }
     img{ display:none; }
+
+    .overlay{
+      pointer-events:none;
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(500px 400px at 50% 35%, rgba(124,58,237,.18), transparent 65%),
+        radial-gradient(520px 420px at 50% 45%, rgba(6,182,212,.10), transparent 70%),
+        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.28));
+    }
+
+    /* face guide */
+    .guide{
+      pointer-events:none;
+      position:absolute;
+      left:50%;
+      top:48%;
+      transform: translate(-50%,-50%);
+      width:min(70%,280px);
+      aspect-ratio: 1/1.2;
+      border-radius: 999px;
+      border: 2px dashed rgba(255,255,255,.25);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+      opacity:.9;
+    }
 
     .btnRow{
       display:grid;
@@ -174,10 +214,10 @@
 
     button{
       border:none;
-      border-radius:14px;
+      border-radius:16px;
       padding:13px 12px;
       font-size:16px;
-      font-weight:800;
+      font-weight:900;
       cursor:pointer;
       color:white;
       transition: transform .08s ease, opacity .2s ease, filter .2s ease;
@@ -186,38 +226,47 @@
     button:active{ transform: scale(.99); }
     button:disabled{ opacity:.55; cursor:not-allowed; }
 
-    .btnPrimary{ background: var(--btn); }
-    .btnDark{ background: var(--btn2); }
-    .btnGreen{ background: #16a34a; }
+    .btnDark{
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.18);
+    }
+
+    .btnPrimary{
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.90));
+      box-shadow: 0 16px 36px rgba(124,58,237,.25);
+    }
+
     .btnWide{
       width:100%;
-      background: #0ea5e9;
+      background: linear-gradient(135deg, rgba(34,197,94,.92), rgba(6,182,212,.85));
+      box-shadow: 0 16px 36px rgba(34,197,94,.18);
     }
 
     .msg{
       display:none;
       padding:12px 12px;
-      border-radius:14px;
+      border-radius:16px;
       border:1px solid var(--line);
       line-height:1.35;
       font-size:14px;
+      background: rgba(0,0,0,.16);
     }
     .msg.ok{
       display:block;
-      background: rgba(34,197,94,.12);
       border-color: rgba(34,197,94,.35);
+      background: rgba(34,197,94,.10);
       color: #d1fae5;
     }
     .msg.bad{
       display:block;
-      background: rgba(239,68,68,.12);
       border-color: rgba(239,68,68,.35);
+      background: rgba(239,68,68,.10);
       color: #fee2e2;
     }
     .msg.warn{
       display:block;
-      background: rgba(245,158,11,.12);
       border-color: rgba(245,158,11,.35);
+      background: rgba(245,158,11,.10);
       color: #ffedd5;
     }
 
@@ -225,21 +274,39 @@
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      margin-top:10px;
+      margin-top:2px;
     }
     .chip{
       font-size:12px;
-      padding:6px 10px;
+      padding:7px 10px;
       border-radius:999px;
       border:1px solid var(--line);
-      background:rgba(0,0,0,.18);
+      background: rgba(0,0,0,.18);
       color:var(--txt);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: rgba(255,255,255,.35);
+    }
+    .dot.ok{ background: rgba(34,197,94,.85); }
+    .dot.bad{ background: rgba(239,68,68,.85); }
+    .dot.warn{ background: rgba(245,158,11,.95); }
+
+    footer{
+      text-align:center;
+      color: rgba(229,231,235,.65);
+      font-size:12px;
+      padding:10px 0 4px;
     }
 
     @media (min-width:560px){
       video{ aspect-ratio: 4/3; }
       .grid{ grid-template-columns:1fr 1fr; }
       .grid .full{ grid-column:1/-1; }
+      .brand b{font-size:19px}
     }
   </style>
 </head>
@@ -249,9 +316,18 @@
 
     <div class="topbar">
       <div class="brand">
-        <b>Davamiyyət</b>
-        <span>QR linkindən məkan avtomatik gəlir</span>
+        <div class="brandRow">
+          <div class="logo"></div>
+          <div>
+            <b>Davamiyyət</b>
+            <div style="margin-top:2px;font-size:12px;color:var(--muted);line-height:1.35">
+              QR linkindən məkan avtomatik gəlir
+            </div>
+          </div>
+        </div>
+        <span>İşıqlı mühitdə dayan, üz ovalın içində olsun. Sonra “Gözünü qırp” yoxlaması gələcək.</span>
       </div>
+
       <div class="pill">📍 Məkan: <b id="mekanTxt">-</b></div>
     </div>
 
@@ -284,8 +360,12 @@
 
     <div class="card">
       <div class="camBox">
-        <video id="video" autoplay playsinline></video>
-        <img id="shot" alt="Çəkilən şəkil"/>
+        <div class="frame">
+          <video id="video" autoplay playsinline></video>
+          <img id="shot" alt="Çəkilən şəkil"/>
+          <div class="overlay"></div>
+          <div class="guide"></div>
+        </div>
 
         <div class="btnRow">
           <button id="btnKamera" class="btnDark" type="button">📷 Kameranı aç</button>
@@ -295,14 +375,15 @@
         <button id="btnGonder" class="btnWide" type="button" disabled>✅ Göndər</button>
 
         <div class="statusLine">
-          <span class="chip" id="chipModel">Model: yüklənir…</span>
-          <span class="chip" id="chipFace">Üz: -</span>
+          <span class="chip"><span id="dotModel" class="dot warn"></span><span id="chipModel">Model: yüklənir…</span></span>
+          <span class="chip"><span id="dotFace" class="dot"></span><span id="chipFace">Üz: -</span></span>
         </div>
 
         <div id="mesaj" class="msg"></div>
       </div>
     </div>
- <footer>© 2025 MiisoftDev – Premium Digital Studio</footer>
+
+    <footer>© 2025 MiisoftDev – Premium Digital Studio</footer>
   </div>
 
   <!-- face-api -->
@@ -318,8 +399,10 @@
 
     const chipModel = document.getElementById("chipModel");
     const chipFace = document.getElementById("chipFace");
+    const dotModel = document.getElementById("dotModel");
+    const dotFace = document.getElementById("dotFace");
 
-    // URL-dən məkan götürürük: /q/corndog
+    // URL-dən məkan: /q/corndog
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const mekan = (pathParts[0] === "q" && pathParts[1]) ? decodeURIComponent(pathParts[1]) : "unknown";
     document.getElementById("mekanTxt").innerText = mekan;
@@ -329,9 +412,43 @@
     let lastDescriptor = null;   // descriptor (128)
     let modelsReady = false;
 
+    function setDot(el, type){
+      el.className = "dot " + (type || "");
+    }
+
     function showMsg(text, type="ok"){
       mesaj.className = "msg " + type;
       mesaj.textContent = text;
+    }
+
+    // ===============================
+    // TEXT TO SPEECH (AZ)
+    // ===============================
+    function speakAZ(text){
+      try{
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "az-AZ";
+        u.rate = 1;
+        u.pitch = 1;
+        u.volume = 1;
+
+        const vs = window.speechSynthesis.getVoices();
+        const v =
+          vs.find(x => (x.lang || "").toLowerCase().startsWith("az")) ||
+          vs.find(x => (x.lang || "").toLowerCase().startsWith("tr")) ||
+          vs[0];
+        if (v) u.voice = v;
+
+        window.speechSynthesis.speak(u);
+      }catch(e){}
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
     }
 
     // ------------------------
@@ -339,11 +456,16 @@
     // ------------------------
     async function loadModels(){
       chipModel.textContent = "Model: yüklənir…";
+      setDot(dotModel, "warn");
+
+      // Sənin serverdə /models var deyə burdan yükləyirik
       await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
       await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
       await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+
       modelsReady = true;
       chipModel.textContent = "Model: hazır ✅";
+      setDot(dotModel, "ok");
     }
 
     async function getDescriptorFromImg(imgEl){
@@ -364,12 +486,55 @@
       });
     }
 
+    // ===============================
+    // BLINK CHECK
+    // ===============================
+    function eyeAspectRatio(eye){
+      const dist = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+      const A = dist(eye[1], eye[5]);
+      const B = dist(eye[2], eye[4]);
+      const C = dist(eye[0], eye[3]);
+      return (A + B) / (2.0 * C);
+    }
+
+    async function runBlinkCheck(videoEl, timeoutMs = 6000){
+      showMsg("Zəhmət olmasa gözünü qırp 👁️", "warn");
+      speakAZ("Zəhmət olmasa gözünü qırp");
+
+      const start = Date.now();
+      let closedOnce = false;
+
+      while (Date.now() - start < timeoutMs) {
+        const det = await faceapi
+          .detectSingleFace(videoEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+          .withFaceLandmarks();
+
+        if (!det) continue;
+
+        const leftEye = det.landmarks.getLeftEye();
+        const rightEye = det.landmarks.getRightEye();
+        const ear = (eyeAspectRatio(leftEye) + eyeAspectRatio(rightEye)) / 2;
+
+        if (ear < 0.20) closedOnce = true;
+        if (closedOnce && ear > 0.26) {
+          speakAZ("Təşəkkürlər. Təsdiqləndi");
+          showMsg("Təsdiqləndi ✅ İndi şəkil çəkilə bilər.", "ok");
+          return true;
+        }
+      }
+
+      speakAZ("Göz qırpma təsdiqlənmədi");
+      showMsg("Göz qırpma təsdiqlənmədi ❌ Yenidən yoxla.", "bad");
+      return false;
+    }
+
     window.addEventListener("load", () => {
       loadModels().then(() => {
         showMsg("Modellər yükləndi ✅", "ok");
       }).catch(err => {
         console.error("Model xətası:", err);
         chipModel.textContent = "Model: xəta ❌";
+        setDot(dotModel, "bad");
         showMsg("Model yükləmə xətası oldu (F12 Console-a bax)", "bad");
       });
     });
@@ -379,20 +544,25 @@
     // ------------------------
     btnKamera.addEventListener("click", async () => {
       try {
+        speakAZ("Kamera açılır");
+        showMsg("Kamera açılır…", "warn");
+
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
           audio: false
         });
+
         video.srcObject = stream;
         btnCek.disabled = false;
-        showMsg("Kamera açıldı ✅", "ok");
+
+        showMsg("Kamera açıldı ✅ İndi “Şəkil çək” bas.", "ok");
       } catch (e) {
         showMsg("Kamera açıla bilmədi: " + e.message, "bad");
       }
     });
 
     // ------------------------
-    // Şəkil çək
+    // Şəkil çək (öncə blink check)
     // ------------------------
     btnCek.addEventListener("click", async () => {
       if (!stream) return;
@@ -402,8 +572,12 @@
         return;
       }
 
-      // UI reset
+      // blink check
+      const okBlink = await runBlinkCheck(video);
+      if (!okBlink) return;
+
       chipFace.textContent = "Üz: yoxlanır…";
+      setDot(dotFace, "warn");
       btnGonder.disabled = true;
       lastDescriptor = null;
 
@@ -420,11 +594,11 @@
       if (!blob) {
         showMsg("Şəkil alınmadı ❌ Yenidən çək.", "bad");
         chipFace.textContent = "Üz: -";
+        setDot(dotFace, "bad");
         return;
       }
 
       blobFile = blob;
-
       shot.src = URL.createObjectURL(blob);
       shot.style.display = "block";
 
@@ -436,18 +610,22 @@
 
         if (!desc) {
           chipFace.textContent = "Üz: tapılmadı ❌";
+          setDot(dotFace, "bad");
           showMsg("Üz tapılmadı ❌ Üz tam görünsün, yenidən çək.", "bad");
+          speakAZ("Üz tapılmadı. Yenidən şəkil çək");
           return;
         }
 
         lastDescriptor = desc;
         chipFace.textContent = "Üz: tapıldı ✅";
+        setDot(dotFace, "ok");
         btnGonder.disabled = false;
         showMsg("Üz tapıldı ✅ İndi göndərə bilərsən.", "ok");
 
       } catch (err) {
         console.error(err);
         chipFace.textContent = "Üz: xəta ❌";
+        setDot(dotFace, "bad");
         showMsg("Üz yoxlama xətası: " + err.message, "bad");
       }
     });
@@ -462,19 +640,23 @@
 
       if (!ad || !soyad || !vezife) {
         showMsg("Ad/Soyad/Vəzifə boş ola bilməz.", "bad");
+        speakAZ("Ad, soyad və vəzifə boş ola bilməz");
         return;
       }
       if (!blobFile) {
         showMsg("Əvvəl şəkil çək.", "bad");
+        speakAZ("Əvvəl şəkil çək");
         return;
       }
       if (!lastDescriptor) {
         showMsg("Üz tapılmadı. Yenidən şəkil çək.", "bad");
+        speakAZ("Üz tapılmadı. Yenidən şəkil çək");
         return;
       }
 
       btnGonder.disabled = true;
       showMsg("Göndərilir... ⏳", "warn");
+      speakAZ("Göndərilir");
 
       const fd = new FormData();
       fd.append("ad", ad);
@@ -490,21 +672,25 @@
 
         if (!r.ok) {
           showMsg(data.error || "Xəta oldu", "bad");
+          speakAZ("Xəta oldu");
           btnGonder.disabled = false;
           return;
         }
 
-        // status görə mesaj rəngi
         if (data.status === "OK") {
           showMsg(`Uğurlu ✅ | Hadisə: ${data.hadise}`, "ok");
+          speakAZ("Uğurlu");
         } else if (data.status === "LIMIT") {
           showMsg(`Limit doldu ⚠️ | Hadisə: ${data.hadise}`, "warn");
+          speakAZ("Limit doldu");
         } else {
           showMsg(`Rədd edildi ❌ | ${data.qeyd || ""}`, "bad");
+          speakAZ("Rədd edildi");
         }
 
       } catch (e) {
         showMsg("Göndərmə xətası: " + e.message, "bad");
+        speakAZ("Göndərmə xətası");
       } finally {
         btnGonder.disabled = false;
       }

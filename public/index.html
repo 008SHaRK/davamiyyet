@@ -3,148 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Davamiyyət</title>
+  <title>Davamiyyət Qeydiyyatı</title>
 
   <style>
     :root{
-      --bg:#070A12;
-      --bg2:#0B1020;
-      --card: rgba(255,255,255,.06);
-      --card2: rgba(255,255,255,.08);
-      --line: rgba(255,255,255,.12);
-      --txt:#e5e7eb;
-      --muted:#9ca3af;
-      --brand:#7c3aed;
-      --brand2:#06b6d4;
-      --ok:#22c55e;
-      --bad:#ef4444;
-      --warn:#f59e0b;
-      --shadow: 0 18px 50px rgba(0,0,0,.55);
-      --r:18px;
+      --bg:#eef2f6;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:#d9e1ea;
+      --brand:#0b5ed7;      /* rəsmi mavi */
+      --brand2:#0a4fb7;
+      --ok:#16a34a;
+      --bad:#dc2626;
+      --warn:#b45309;
+      --shadow: 0 10px 26px rgba(15,23,42,.10);
+      --r:14px;
+      --r2:12px;
     }
 
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: Arial, sans-serif;
-      color:var(--txt);
-      padding:16px;
-      background:
-        radial-gradient(1100px 650px at 15% -5%, rgba(124,58,237,.40), transparent 60%),
-        radial-gradient(1000px 600px at 95% 10%, rgba(6,182,212,.22), transparent 62%),
-        radial-gradient(900px 520px at 60% 110%, rgba(34,197,94,.10), transparent 60%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
+      background: var(--bg);
+      color: var(--text);
     }
 
-    .wrap{
-      max-width:620px;
+    /* ---------- HEADER (rəsmi) ---------- */
+    .header{
+      background: #0b1b3a;
+      color:#fff;
+      border-bottom: 3px solid rgba(255,255,255,.12);
+    }
+    .header .wrap{
+      max-width: 760px;
       margin:0 auto;
+      padding: 14px 14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      min-width: 240px;
+    }
+    .emblem{
+      width:44px;height:44px;
+      border-radius:10px;
+      background: linear-gradient(180deg, #ffffff, #dbe7ff);
+      display:grid;place-items:center;
+      color:#0b1b3a;
+      font-weight:900;
+      box-shadow: 0 8px 16px rgba(0,0,0,.18);
+      border: 1px solid rgba(0,0,0,.10);
+      flex:0 0 auto;
+    }
+    .brandText b{display:block;font-size:16px;letter-spacing:.2px}
+    .brandText span{display:block;font-size:12px;opacity:.85;margin-top:2px;line-height:1.3}
+    .mekanPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .mekanPill b{font-size:13px}
+
+    /* ---------- PAGE ---------- */
+    .wrap{
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px;
       display:flex;
       flex-direction:column;
       gap:12px;
     }
 
-    /* Topbar */
-    .topbar{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      padding:14px;
-      border:1px solid var(--line);
-      background:var(--card);
-      border-radius:var(--r);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width:220px;
-    }
-    .brandRow{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .logo{
-      width:40px;height:40px;border-radius:14px;
-      background: linear-gradient(135deg, rgba(124,58,237,.9), rgba(6,182,212,.85));
-      box-shadow: 0 12px 28px rgba(124,58,237,.25);
-      border:1px solid rgba(255,255,255,.18);
-    }
-    .brand b{font-size:18px; letter-spacing:.2px}
-    .brand span{font-size:12px; color:var(--muted); line-height:1.35}
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:9px 12px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      background: rgba(0,0,0,.18);
-      font-size:12px;
-      color:var(--txt);
-      white-space:nowrap;
-    }
-    .pill b{font-size:12px}
-
-    /* Cards */
     .card{
-      border:1px solid var(--line);
-      background:var(--card);
-      border-radius:var(--r);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
       overflow:hidden;
     }
-    .card .p{ padding:14px; }
+    .card .p{ padding: 14px; }
+
+    .titleRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+    .titleRow b{font-size:14px}
+    .titleRow .mini{font-size:12px;color:var(--muted)}
 
     .grid{
       display:grid;
-      grid-template-columns:1fr;
+      grid-template-columns: 1fr;
       gap:10px;
+    }
+    @media(min-width:680px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+      .grid .full{ grid-column: 1 / -1; }
     }
 
     label{
       display:block;
       font-size:13px;
-      font-weight:800;
+      font-weight:700;
       margin:0 0 6px;
-      color:var(--txt);
+      color:#0f172a;
     }
 
-    input, select{
+    input,select{
       width:100%;
       padding:12px 12px;
-      border-radius:14px;
+      border-radius: var(--r2);
       border:1px solid var(--line);
-      background: rgba(0,0,0,.18);
-      color:var(--txt);
       font-size:16px;
       outline:none;
+      background:#fff;
+    }
+    input::placeholder{color:#94a3b8}
+    input:focus,select:focus{
+      border-color: rgba(11,94,215,.55);
+      box-shadow: 0 0 0 4px rgba(11,94,215,.12);
     }
 
-    input::placeholder{color:rgba(229,231,235,.55)}
-    input:focus, select:focus{
-      border-color: rgba(124,58,237,.55);
-      box-shadow: 0 0 0 4px rgba(124,58,237,.18);
-    }
-
-    /* Premium select arrow */
     select{
       padding-right:42px;
       appearance:none;
       -webkit-appearance:none;
-      -moz-appearance:none;
       background-image:
-        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0)),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-      background-repeat:no-repeat,no-repeat;
-      background-position:left top, right 14px center;
-      background-size:auto,18px;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364758b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position: right 12px center;
+      background-size: 18px;
     }
 
     .hint{
@@ -154,184 +161,200 @@
       line-height:1.35;
     }
 
-    /* Camera */
-    .camBox{
-      padding:12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
+    /* ---------- CAMERA ---------- */
     .frame{
       position:relative;
-      border-radius:18px;
+      border-radius: 12px;
       overflow:hidden;
       border:1px solid var(--line);
       background:#000;
     }
-
     video, img{
       width:100%;
       display:block;
       background:#000;
-    }
-    video{
       aspect-ratio: 3/4;
       object-fit:cover;
     }
-    img{ display:none; }
+    @media(min-width:680px){
+      video, img{ aspect-ratio: 4/3; }
+    }
+    #shot{ display:none; }
 
-    .overlay{
-      pointer-events:none;
+    /* scanning overlay */
+    .scanOverlay{
       position:absolute;
       inset:0;
-      background:
-        radial-gradient(500px 400px at 50% 35%, rgba(124,58,237,.18), transparent 65%),
-        radial-gradient(520px 420px at 50% 45%, rgba(6,182,212,.10), transparent 70%),
-        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.28));
-    }
-
-    /* face guide */
-    .guide{
       pointer-events:none;
+      display:none;
+    }
+    .scanOverlay.on{ display:block; }
+    .scanShade{
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.35));
+    }
+    .scanLine{
       position:absolute;
-      left:50%;
-      top:48%;
-      transform: translate(-50%,-50%);
-      width:min(70%,280px);
-      aspect-ratio: 1/1.2;
-      border-radius: 999px;
-      border: 2px dashed rgba(255,255,255,.25);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
-      opacity:.9;
+      left:0; right:0;
+      height:2px;
+      background: rgba(11,94,215,.85);
+      box-shadow: 0 0 16px rgba(11,94,215,.65);
+      animation: scanMove 1.5s linear infinite;
+      top: 15%;
+    }
+    @keyframes scanMove{
+      0%{ top: 18%; opacity:.35 }
+      15%{ opacity:1 }
+      50%{ top: 55%; opacity:1 }
+      85%{ opacity:1 }
+      100%{ top: 86%; opacity:.35 }
+    }
+    .scanText{
+      position:absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(15,23,42,.60);
+      color:#fff;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(6px);
     }
 
     .btnRow{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap:10px;
+      margin-top:10px;
     }
-
     button{
       border:none;
-      border-radius:16px;
-      padding:13px 12px;
-      font-size:16px;
-      font-weight:900;
+      border-radius: 12px;
+      padding: 12px 12px;
+      font-size:15px;
+      font-weight:800;
       cursor:pointer;
-      color:white;
-      transition: transform .08s ease, opacity .2s ease, filter .2s ease;
+      transition: filter .15s ease, transform .05s ease, opacity .2s ease;
       user-select:none;
     }
-    button:active{ transform: scale(.99); }
+    button:active{ transform: scale(.995); }
     button:disabled{ opacity:.55; cursor:not-allowed; }
 
     .btnDark{
-      background: rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.18);
+      background:#334155;
+      color:#fff;
     }
-
     .btnPrimary{
-      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.90));
-      box-shadow: 0 16px 36px rgba(124,58,237,.25);
+      background: var(--brand);
+      color:#fff;
     }
-
+    .btnPrimary:hover{ filter: brightness(.95); }
     .btnWide{
       width:100%;
-      background: linear-gradient(135deg, rgba(34,197,94,.92), rgba(6,182,212,.85));
-      box-shadow: 0 16px 36px rgba(34,197,94,.18);
+      background: var(--brand2);
+      color:#fff;
+      margin-top:10px;
     }
 
-    .msg{
-      display:none;
-      padding:12px 12px;
-      border-radius:16px;
+    /* confirm */
+    .confirm{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
       border:1px solid var(--line);
+      background:#f8fafc;
+    }
+    .confirm input{ width:auto; margin-top:2px; }
+    .confirm .t{
+      font-size:13px;
+      color:#0f172a;
       line-height:1.35;
-      font-size:14px;
-      background: rgba(0,0,0,.16);
     }
-    .msg.ok{
+    .confirm .t span{
       display:block;
-      border-color: rgba(34,197,94,.35);
-      background: rgba(34,197,94,.10);
-      color: #d1fae5;
-    }
-    .msg.bad{
-      display:block;
-      border-color: rgba(239,68,68,.35);
-      background: rgba(239,68,68,.10);
-      color: #fee2e2;
-    }
-    .msg.warn{
-      display:block;
-      border-color: rgba(245,158,11,.35);
-      background: rgba(245,158,11,.10);
-      color: #ffedd5;
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
     }
 
+    /* status chips */
     .statusLine{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      margin-top:2px;
+      margin-top:10px;
     }
     .chip{
       font-size:12px;
-      padding:7px 10px;
+      padding:8px 10px;
       border-radius:999px;
       border:1px solid var(--line);
-      background: rgba(0,0,0,.18);
-      color:var(--txt);
+      background:#fff;
+      color:#0f172a;
       display:inline-flex;
       align-items:center;
       gap:8px;
     }
-    .dot{
-      width:8px;height:8px;border-radius:999px;
-      background: rgba(255,255,255,.35);
+    .dot{width:8px;height:8px;border-radius:999px;background:#94a3b8}
+    .dot.ok{background: var(--ok)}
+    .dot.bad{background: var(--bad)}
+    .dot.warn{background: var(--warn)}
+
+    /* msg */
+    .msg{
+      display:none;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      margin-top:10px;
+      font-size:14px;
+      line-height:1.35;
     }
-    .dot.ok{ background: rgba(34,197,94,.85); }
-    .dot.bad{ background: rgba(239,68,68,.85); }
-    .dot.warn{ background: rgba(245,158,11,.95); }
+    .msg.ok{ display:block; border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.08); color:#14532d; }
+    .msg.bad{ display:block; border-color: rgba(220,38,38,.35); background: rgba(220,38,38,.08); color:#7f1d1d; }
+    .msg.warn{ display:block; border-color: rgba(180,83,9,.35); background: rgba(180,83,9,.08); color:#7c2d12; }
 
     footer{
       text-align:center;
-      color: rgba(229,231,235,.65);
+      color:#64748b;
       font-size:12px;
-      padding:10px 0 4px;
+      padding: 8px 0 2px;
     }
 
-    @media (min-width:560px){
-      video{ aspect-ratio: 4/3; }
-      .grid{ grid-template-columns:1fr 1fr; }
-      .grid .full{ grid-column:1/-1; }
-      .brand b{font-size:19px}
+    /* mobile: header pill aşağı düşsün, daşmasın */
+    @media(max-width:420px){
+      .mekanPill{ width:100%; justify-content:flex-start; }
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-
-    <div class="topbar">
+  <div class="header">
+    <div class="wrap">
       <div class="brand">
-        <div class="brandRow">
-          <div class="logo"></div>
-          <div>
-            <b>Davamiyyət</b>
-            <div style="margin-top:2px;font-size:12px;color:var(--muted);line-height:1.35">
-              QR linkindən məkan avtomatik gəlir
-            </div>
-          </div>
+        <div class="emblem">AZ</div>
+        <div class="brandText">
+          <b>Davamiyyət Qeydiyyat Sistemi</b>
+          <span>Şəxsiyyətin doğrulanması üçün foto qeydiyyat</span>
         </div>
-        <span>İşıqlı mühitdə dayan, üz ovalın içində olsun. Sonra “Gözünü qırp” yoxlaması gələcək.</span>
       </div>
 
-      <div class="pill">📍 Məkan: <b id="mekanTxt">-</b></div>
+      <div class="mekanPill">📍 Məkan: <b id="mekanTxt">-</b></div>
     </div>
+  </div>
+
+  <div class="wrap">
 
     <div class="card">
+      <div class="titleRow">
+        <b>Məlumatlar</b>
+        <div class="mini">Ad/Soyad/Vəzifə bazada necədirsə elə yaz</div>
+      </div>
+
       <div class="p">
         <div class="grid">
           <div>
@@ -352,24 +375,41 @@
               <option value="satıcı">satıcı</option>
               <option value="menecer">menecer</option>
             </select>
-            <div class="hint">Qeyd: Ad/Soyad/Vəzifə bazada necədirsə elə yaz.</div>
+            <div class="hint">Qeyd: Yanlış yazılsa sistem “işçi tapılmadı” qaytara bilər.</div>
+          </div>
+        </div>
+
+        <div class="confirm">
+          <input id="chk" type="checkbox" />
+          <div class="t">
+            Məlumatların düzgünlüyünü təsdiq edirəm.
+            <span>Qeydiyyat zamanı çəkilən foto və tarix/saat sistemdə saxlanılır.</span>
           </div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="camBox">
+      <div class="titleRow">
+        <b>Kamera</b>
+        <div class="mini">Üz tam görünsün, işıq yaxşı olsun</div>
+      </div>
+
+      <div class="p">
         <div class="frame">
           <video id="video" autoplay playsinline></video>
           <img id="shot" alt="Çəkilən şəkil"/>
-          <div class="overlay"></div>
-          <div class="guide"></div>
+
+          <div id="scan" class="scanOverlay">
+            <div class="scanShade"></div>
+            <div class="scanLine"></div>
+            <div class="scanText">Üz yoxlanılır…</div>
+          </div>
         </div>
 
         <div class="btnRow">
           <button id="btnKamera" class="btnDark" type="button">📷 Kameranı aç</button>
-          <button id="btnCek" class="btnPrimary" type="button" disabled>🟦 Şəkil çək</button>
+          <button id="btnCek" class="btnPrimary" type="button" disabled>📸 Şəkil çək</button>
         </div>
 
         <button id="btnGonder" class="btnWide" type="button" disabled>✅ Göndər</button>
@@ -383,7 +423,7 @@
       </div>
     </div>
 
-    <footer>© 2025 MiisoftDev – Premium Digital Studio</footer>
+    <footer>© 2026 MiisoftDev – Davamiyyət Platforması</footer>
   </div>
 
   <!-- face-api -->
@@ -392,9 +432,12 @@
   <script>
     const video = document.getElementById("video");
     const shot = document.getElementById("shot");
+    const scan = document.getElementById("scan");
+
     const btnKamera = document.getElementById("btnKamera");
     const btnCek = document.getElementById("btnCek");
     const btnGonder = document.getElementById("btnGonder");
+    const chk = document.getElementById("chk");
     const mesaj = document.getElementById("mesaj");
 
     const chipModel = document.getElementById("chipModel");
@@ -402,14 +445,18 @@
     const dotModel = document.getElementById("dotModel");
     const dotFace = document.getElementById("dotFace");
 
+    // ✅ TELEFONDA ƏKS GÖSTƏRİRSƏ: bunu true saxla (preview düz görünəcək)
+    // Əgər səndə təsadüfən düz göstərsə, false edə bilərsən.
+    const UNMIRROR_PREVIEW = true;
+
     // URL-dən məkan: /q/corndog
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const mekan = (pathParts[0] === "q" && pathParts[1]) ? decodeURIComponent(pathParts[1]) : "unknown";
     document.getElementById("mekanTxt").innerText = mekan;
 
     let stream = null;
-    let blobFile = null;         // şəkil (blob)
-    let lastDescriptor = null;   // descriptor (128)
+    let blobFile = null;
+    let lastDescriptor = null;
     let modelsReady = false;
 
     function setDot(el, type){
@@ -421,44 +468,21 @@
       mesaj.textContent = text;
     }
 
-    // ===============================
-    // TEXT TO SPEECH (AZ)
-    // ===============================
-    function speakAZ(text){
-      try{
-        if (!("speechSynthesis" in window)) return;
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "az-AZ";
-        u.rate = 1;
-        u.pitch = 1;
-        u.volume = 1;
-
-        const vs = window.speechSynthesis.getVoices();
-        const v =
-          vs.find(x => (x.lang || "").toLowerCase().startsWith("az")) ||
-          vs.find(x => (x.lang || "").toLowerCase().startsWith("tr")) ||
-          vs[0];
-        if (v) u.voice = v;
-
-        window.speechSynthesis.speak(u);
-      }catch(e){}
+    function setScan(on, text){
+      if (on) {
+        scan.classList.add("on");
+        const t = scan.querySelector(".scanText");
+        if (t) t.textContent = text || "Üz yoxlanılır…";
+      } else {
+        scan.classList.remove("on");
+      }
     }
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
-    }
-
-    // ------------------------
-    // Face-api modellərini yüklə
-    // ------------------------
+    // Modellər
     async function loadModels(){
       chipModel.textContent = "Model: yüklənir…";
       setDot(dotModel, "warn");
 
-      // Sənin serverdə /models var deyə burdan yükləyirik
       await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
       await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
       await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
@@ -486,65 +510,27 @@
       });
     }
 
-    // ===============================
-    // BLINK CHECK
-    // ===============================
-    function eyeAspectRatio(eye){
-      const dist = (a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-      const A = dist(eye[1], eye[5]);
-      const B = dist(eye[2], eye[4]);
-      const C = dist(eye[0], eye[3]);
-      return (A + B) / (2.0 * C);
-    }
-
-    async function runBlinkCheck(videoEl, timeoutMs = 6000){
-      showMsg("Zəhmət olmasa gözünü qırp 👁️", "warn");
-      speakAZ("Zəhmət olmasa gözünü qırp");
-
-      const start = Date.now();
-      let closedOnce = false;
-
-      while (Date.now() - start < timeoutMs) {
-        const det = await faceapi
-          .detectSingleFace(videoEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
-          .withFaceLandmarks();
-
-        if (!det) continue;
-
-        const leftEye = det.landmarks.getLeftEye();
-        const rightEye = det.landmarks.getRightEye();
-        const ear = (eyeAspectRatio(leftEye) + eyeAspectRatio(rightEye)) / 2;
-
-        if (ear < 0.20) closedOnce = true;
-        if (closedOnce && ear > 0.26) {
-          speakAZ("Təşəkkürlər. Təsdiqləndi");
-          showMsg("Təsdiqləndi ✅ İndi şəkil çəkilə bilər.", "ok");
-          return true;
-        }
-      }
-
-      speakAZ("Göz qırpma təsdiqlənmədi");
-      showMsg("Göz qırpma təsdiqlənmədi ❌ Yenidən yoxla.", "bad");
-      return false;
-    }
-
     window.addEventListener("load", () => {
       loadModels().then(() => {
-        showMsg("Modellər yükləndi ✅", "ok");
+        showMsg("Sistem hazırdır. Kameranı açın.", "ok");
       }).catch(err => {
-        console.error("Model xətası:", err);
+        console.error(err);
         chipModel.textContent = "Model: xəta ❌";
         setDot(dotModel, "bad");
-        showMsg("Model yükləmə xətası oldu (F12 Console-a bax)", "bad");
+        showMsg("Model yükləmə xətası oldu (Console-a bax)", "bad");
       });
     });
 
-    // ------------------------
+    // Checkbox → göndər aktivliyinə təsir edir
+    function refreshSendState(){
+      const ok = !!chk.checked && !!blobFile && !!lastDescriptor;
+      btnGonder.disabled = !ok;
+    }
+    chk.addEventListener("change", refreshSendState);
+
     // Kamera aç
-    // ------------------------
     btnKamera.addEventListener("click", async () => {
       try {
-        speakAZ("Kamera açılır");
         showMsg("Kamera açılır…", "warn");
 
         stream = await navigator.mediaDevices.getUserMedia({
@@ -553,33 +539,32 @@
         });
 
         video.srcObject = stream;
-        btnCek.disabled = false;
 
-        showMsg("Kamera açıldı ✅ İndi “Şəkil çək” bas.", "ok");
+        // ✅ PREVIEW ƏKSİ DÜZƏLTDİK (CSS flip)
+        video.style.transform = UNMIRROR_PREVIEW ? "scaleX(-1)" : "none";
+
+        btnCek.disabled = false;
+        showMsg("Kamera açıldı ✅ İndi şəkil çəkə bilərsiniz.", "ok");
       } catch (e) {
         showMsg("Kamera açıla bilmədi: " + e.message, "bad");
       }
     });
 
-    // ------------------------
-    // Şəkil çək (öncə blink check)
-    // ------------------------
+    // Şəkil çək
     btnCek.addEventListener("click", async () => {
       if (!stream) return;
 
       if (!modelsReady) {
-        showMsg("Modellər hələ yüklənir... 2 saniyə gözlə.", "warn");
+        showMsg("Modellər hələ yüklənir… bir az gözləyin.", "warn");
         return;
       }
-
-      // blink check
-      const okBlink = await runBlinkCheck(video);
-      if (!okBlink) return;
 
       chipFace.textContent = "Üz: yoxlanır…";
       setDot(dotFace, "warn");
       btnGonder.disabled = true;
       lastDescriptor = null;
+
+      setScan(true, "Kadr hazırlanır…");
 
       const canvas = document.createElement("canvas");
       const w = video.videoWidth || 640;
@@ -588,51 +573,63 @@
       canvas.height = h;
 
       const ctx = canvas.getContext("2d");
+
+      // ✅ IMPORTANT:
+      // CSS-lə videonu flip edirik, amma canvas-a təsir etmir.
+      // Ona görə burada HEÇ BİR flip ETMİRİK.
       ctx.drawImage(video, 0, 0, w, h);
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.88));
       if (!blob) {
-        showMsg("Şəkil alınmadı ❌ Yenidən çək.", "bad");
+        setScan(false);
+        showMsg("Şəkil alınmadı ❌ Yenidən cəhd edin.", "bad");
         chipFace.textContent = "Üz: -";
         setDot(dotFace, "bad");
         return;
       }
 
       blobFile = blob;
+
+      // Preview göstər
       shot.src = URL.createObjectURL(blob);
       shot.style.display = "block";
 
-      showMsg("Şəkil çəkildi ✅ Üz axtarılır...", "ok");
+      setScan(true, "Üz analiz edilir…");
 
-      try {
+      try{
         await waitImgLoad(shot);
-        const desc = await getDescriptorFromImg(shot);
 
+        const desc = await getDescriptorFromImg(shot);
         if (!desc) {
+          setScan(false);
           chipFace.textContent = "Üz: tapılmadı ❌";
           setDot(dotFace, "bad");
-          showMsg("Üz tapılmadı ❌ Üz tam görünsün, yenidən çək.", "bad");
-          speakAZ("Üz tapılmadı. Yenidən şəkil çək");
+          showMsg("Üz tapılmadı. Üz tam görünsün, işıq yaxşı olsun və yenidən çək.", "bad");
+          lastDescriptor = null;
+          refreshSendState();
           return;
         }
 
         lastDescriptor = desc;
         chipFace.textContent = "Üz: tapıldı ✅";
         setDot(dotFace, "ok");
-        btnGonder.disabled = false;
-        showMsg("Üz tapıldı ✅ İndi göndərə bilərsən.", "ok");
+        setScan(false);
 
-      } catch (err) {
+        showMsg("Şəkil hazırdır. Checkbox seçin və “Göndər” basın.", "ok");
+        refreshSendState();
+
+      } catch(err){
         console.error(err);
+        setScan(false);
         chipFace.textContent = "Üz: xəta ❌";
         setDot(dotFace, "bad");
         showMsg("Üz yoxlama xətası: " + err.message, "bad");
+        lastDescriptor = null;
+        refreshSendState();
       }
     });
 
-    // ------------------------
     // Göndər
-    // ------------------------
     btnGonder.addEventListener("click", async () => {
       const ad = document.getElementById("ad").value.trim();
       const soyad = document.getElementById("soyad").value.trim();
@@ -640,23 +637,20 @@
 
       if (!ad || !soyad || !vezife) {
         showMsg("Ad/Soyad/Vəzifə boş ola bilməz.", "bad");
-        speakAZ("Ad, soyad və vəzifə boş ola bilməz");
         return;
       }
-      if (!blobFile) {
-        showMsg("Əvvəl şəkil çək.", "bad");
-        speakAZ("Əvvəl şəkil çək");
+      if (!chk.checked) {
+        showMsg("Zəhmət olmasa təsdiq edin (checkbox).", "warn");
         return;
       }
-      if (!lastDescriptor) {
-        showMsg("Üz tapılmadı. Yenidən şəkil çək.", "bad");
-        speakAZ("Üz tapılmadı. Yenidən şəkil çək");
+      if (!blobFile || !lastDescriptor) {
+        showMsg("Şəkil və üz doğrulanması tamamlanmayıb.", "bad");
         return;
       }
 
       btnGonder.disabled = true;
-      showMsg("Göndərilir... ⏳", "warn");
-      speakAZ("Göndərilir");
+      setScan(true, "Məlumatlar göndərilir…");
+      showMsg("Göndərilir…", "warn");
 
       const fd = new FormData();
       fd.append("ad", ad);
@@ -670,28 +664,31 @@
         const r = await fetch("/api/qeydiyyat", { method: "POST", body: fd });
         const data = await r.json();
 
+        setScan(false);
+
         if (!r.ok) {
           showMsg(data.error || "Xəta oldu", "bad");
-          speakAZ("Xəta oldu");
           btnGonder.disabled = false;
           return;
         }
 
         if (data.status === "OK") {
-          showMsg(`Uğurlu ✅ | Hadisə: ${data.hadise}`, "ok");
-          speakAZ("Uğurlu");
+          showMsg(`Qeydiyyat tamamlandı ✅ | Hadisə: ${data.hadise}`, "ok");
         } else if (data.status === "LIMIT") {
           showMsg(`Limit doldu ⚠️ | Hadisə: ${data.hadise}`, "warn");
-          speakAZ("Limit doldu");
         } else {
           showMsg(`Rədd edildi ❌ | ${data.qeyd || ""}`, "bad");
-          speakAZ("Rədd edildi");
         }
 
+        // reset
+        blobFile = null;
+        lastDescriptor = null;
+        shot.style.display = "none";
+        refreshSendState();
+
       } catch (e) {
+        setScan(false);
         showMsg("Göndərmə xətası: " + e.message, "bad");
-        speakAZ("Göndərmə xətası");
-      } finally {
         btnGonder.disabled = false;
       }
     });
